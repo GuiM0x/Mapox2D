@@ -11,20 +11,31 @@ void MapScene::holdStatusBar(QStatusBar *statusBar)
     m_statusBar = statusBar;
 }
 
+void MapScene::holdTextureList(TextureList *texturelist)
+{
+    m_textureList = texturelist;
+}
+
 void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
 {
     clear();
     m_tiles.clear();
-    m_textures.clear();
+    m_tilesTextures.clear();
     m_tileSize = QSize{tileWidth, tileHeight};
     m_rows = rows;
     m_cols = cols;
     for(int i = 0; i < rows; ++i){
         for(int j = 0; j < cols; ++j){
             m_tiles.push_back(addRect(j*tileWidth, i*tileHeight, tileWidth, tileHeight));
-            m_textures.push_back(addPixmap(QPixmap{}));
+            m_tilesTextures.push_back(addPixmap(QPixmap{}));
+            m_tilesTextures.back()->setPos(j*tileWidth, i*tileHeight);
         }
     }
+}
+
+void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
+{
+    m_currentTextureFileName = item->text();
 }
 
 void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
@@ -82,9 +93,12 @@ int MapScene::indexRelativeToMouse(const QPointF& mousePos)
 void MapScene::fillTile(const QPointF& mousePos)
 {
     int index = indexRelativeToMouse(mousePos);
-    if(index != -1){
-        // Filled with color temporary
-        // In future, m_textures will be filled with QPixmap relative to texture selected in "TextureList"
-        m_tiles[static_cast<std::size_t>(index)]->setBrush(QBrush{QColor{Qt::green}});
+    if(!m_currentTextureFileName.isEmpty()){
+        if(index != -1){
+            QPixmap scaled = m_textureList->getTexture(m_currentTextureFileName).scaled(m_tileSize.width(), m_tileSize.height());
+            m_tilesTextures[static_cast<std::size_t>(index)]->setPixmap(scaled);
+        }
+    } else {
+        m_statusBar->showMessage("No texture selected !");
     }
 }

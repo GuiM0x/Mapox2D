@@ -18,6 +18,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_addTextureButton->setText(tr("Add Texture"));
     connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
+
+    connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
 }
 
 MainWindow::~MainWindow()
@@ -136,6 +138,8 @@ void MainWindow::createMapView()
 
 void MainWindow::createMapScene()
 {
+    m_mapScene->holdStatusBar(statusBar());
+    m_mapScene->holdTextureList(m_textureList);
     std::map<QString, int> defaultMap{};
     defaultMap["tileWidth"]  = 32;
     defaultMap["tileHeight"] = 32;
@@ -146,8 +150,6 @@ void MainWindow::createMapScene()
 
 void MainWindow::createMapScene(std::map<QString, int>& values)
 {
-    m_mapScene->holdStatusBar(statusBar());
-
     m_mapScene->createMatrix(values["tileWidth"],
                              values["tileHeight"],
                              values["totalRows"],

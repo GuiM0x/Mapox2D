@@ -3,6 +3,7 @@
 
 #include <QDebug>
 #include <QListWidget>
+#include <QStringList>
 
 class TextureList : public QListWidget
 {
@@ -11,11 +12,16 @@ class TextureList : public QListWidget
 public:
     TextureList(QWidget *parent = nullptr);
 
-private slots:
-    void currentActiveItem(QListWidgetItem* item);
-
 public:
     void addTexture(const QString& fileName);
+    QPixmap getTexture(const QString& textureName);
+
+private:
+    QString cutFileName(const QString& fileName) const;
+
+private:
+    std::map<QString, QPixmap> m_textures{};
+    std::map<QString, QString> m_texturesPaths{};
 };
 
 #endif // TEXTURELIST_H
