@@ -6,6 +6,8 @@
 
 class TextureList : public QListWidget
 {
+    Q_OBJECT
+
 public:
     TextureList(QWidget *parent = nullptr);
 

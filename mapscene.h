@@ -14,16 +14,26 @@ public:
 
 public:
     void holdStatusBar(QStatusBar* statusBar);
-
-protected:
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-
-public:
-    QSize m_tileSize{};
+    void createMatrix(int tileWidth, int tileHeight, int rows, int cols);
 
 private:
-    QString m_mousePosStr{};
-    QStatusBar *m_statusBar{nullptr};
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
+
+    int indexRelativeToMouse(const QPointF& mousePos);
+    void fillTile(const QPointF& mousePos);
+
+private:
+    std::vector<QGraphicsRectItem*>   m_tiles{};
+    std::vector<QGraphicsPixmapItem*> m_textures{};
+    QString                           m_mousePosStr{};
+    QStatusBar                       *m_statusBar{nullptr};
+    QSize                             m_tileSize{};
+    int                               m_rows{};
+    int                               m_cols{};
+    int                               m_currentIndex{};
+    bool                              m_mouseLeftPress{false};
 };
 
 #endif // MAPSCENE_H

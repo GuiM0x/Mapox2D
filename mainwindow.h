@@ -8,8 +8,8 @@
 
 #include <map>
 
-#include <QMainWindow>
 #include <QDebug>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QGridLayout>

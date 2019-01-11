@@ -18,7 +18,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_addTextureButton->setText(tr("Add Texture"));
     connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
-    m_textureList->setIconSize(QSize{64, 64});
 }
 
 MainWindow::~MainWindow()
@@ -85,8 +84,8 @@ void MainWindow::about()
 
 void MainWindow::openTexture()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
-                                                    tr("Images (*.png *.jpg *.bmp)"));
+    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
+                                                          tr("Images (*.png *.jpg *.bmp)"));
     m_textureList->addTexture(fileName);
 }
 
@@ -149,19 +148,10 @@ void MainWindow::createMapScene(std::map<QString, int>& values)
 {
     m_mapScene->holdStatusBar(statusBar());
 
-    const int tileWidth{values["tileWidth"]};
-    const int tileHeight{values["tileHeight"]};
-    const int rows{values["totalRows"]};
-    const int cols{values["totalCols"]};
-
-    m_mapScene->clear();
-    m_mapScene->m_tileSize = QSize{tileWidth, tileHeight};
-
-    for(int i = 0; i < rows; ++i){
-        for(int j = 0; j < cols; ++j){
-            m_mapScene->addRect(j*tileWidth, i*tileHeight, tileWidth, tileHeight);
-        }
-    }
+    m_mapScene->createMatrix(values["tileWidth"],
+                             values["tileHeight"],
+                             values["totalRows"],
+                             values["totalCols"]);
 
     m_mapView->setSceneRect(m_mapScene->itemsBoundingRect());
     m_mapView->resetTransform();

@@ -6,7 +6,7 @@
 #include <QDebug>
 #include <QGraphicsView>
 #include <QWheelEvent>
-#include <QTimeLine>
+#include <QStatusBar>
 
 class MapView : public QGraphicsView
 {
@@ -15,7 +15,7 @@ class MapView : public QGraphicsView
 public:
     MapView(QWidget *parent = nullptr);
 
-protected:
+private:
     void focusOutEvent(QFocusEvent *event) override;
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
