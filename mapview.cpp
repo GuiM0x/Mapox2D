@@ -7,6 +7,20 @@ MapView::MapView(QWidget *parent)
     createKeys();
 }
 
+void MapView::holdUndoStack(QUndoStack *undoStack)
+{
+    m_undoStack = undoStack;
+}
+
+void MapView::mouseMovingAndPressing(MapScene* mapScene)
+{
+    int index = mapScene->currentTile();
+    if(mapScene->canFillTile(index) && m_undoStack != nullptr){
+        QUndoCommand *fillCommand = new FillTileCommand{mapScene};
+        m_undoStack->push(fillCommand);
+    }
+}
+
 void MapView::focusOutEvent(QFocusEvent *event)
 {
     if(event->lostFocus()){
@@ -22,6 +36,12 @@ void MapView::keyPressEvent(QKeyEvent *event)
 
     if(event->key() == Qt::Key_Shift){
         setDragMode(QGraphicsView::ScrollHandDrag);
+    }
+
+    if(event->key() == Qt::Key_Delete){
+        auto mapScene = static_cast<MapScene*>(scene());
+        QUndoCommand *fillCommand = new DeleteTileCommand{mapScene};
+        m_undoStack->push(fillCommand);
     }
 }
 
@@ -50,4 +70,5 @@ void MapView::wheelEvent(QWheelEvent *event)
 void MapView::createKeys()
 {
     m_keysState["Control"] = false;
+    m_keysState["LeftButton"] = false;
 }

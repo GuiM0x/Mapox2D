@@ -1,12 +1,17 @@
 #ifndef MAPVIEW_H
 #define MAPVIEW_H
 
+#include "mapscene.h"
+#include "filltilecommand.h"
+#include "deletetilecommand.h"
+
 #include <map>
 
 #include <QDebug>
 #include <QGraphicsView>
 #include <QWheelEvent>
 #include <QStatusBar>
+#include <QMouseEvent>
 
 class MapView : public QGraphicsView
 {
@@ -14,6 +19,15 @@ class MapView : public QGraphicsView
 
 public:
     MapView(QWidget *parent = nullptr);
+
+public:
+    void holdUndoStack(QUndoStack *undoStack);
+
+public slots:
+    // Connected with signal &MapScene::mouseMoveAndPressLeft
+    // The signal indicate that a mouse Left button is pressed
+    // and mouse moving. This slot create a command that fill a tile
+    void mouseMovingAndPressing(MapScene* mapScene);
 
 private:
     void focusOutEvent(QFocusEvent *event) override;
@@ -25,8 +39,9 @@ private:
     void createKeys();
 
 private:
-    double m_zoomFactor{1.0};
     std::map<std::string, bool> m_keysState{};
+    double                      m_zoomFactor{1.0};
+    QUndoStack                  *m_undoStack{nullptr};
 };
 
 #endif // MAPVIEW_H

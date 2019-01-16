@@ -32,6 +32,16 @@ std::map<QString, int> NewMapDialog::processDial()
     return values;
 }
 
+void NewMapDialog::textHasBeenEdited(const QString& text)
+{
+    if(text.toInt() > m_validatorCount.top()){
+        if(m_fields["totalCols"]->text() == text)
+            m_fields["totalCols"]->setText(QString::number(m_validatorCount.top()));
+        else if(m_fields["totalRows"]->text() == text)
+            m_fields["totalRows"]->setText(QString::number(m_validatorCount.top()));
+    }
+}
+
 void NewMapDialog::createForm()
 {
     QLineEdit *lineEditTileWidth = new QLineEdit{this};
@@ -48,11 +58,13 @@ void NewMapDialog::createForm()
     lineEditTotalRows->setValidator(&m_validatorCount);
     m_form.addRow(QString{tr("Total  Rows : ")}, lineEditTotalRows);
     m_fields["totalRows"] = lineEditTotalRows;
+    connect(lineEditTotalRows, &QLineEdit::textEdited, this, &NewMapDialog::textHasBeenEdited);
 
-    QLineEdit *lineEditTotalCows = new QLineEdit{this};
-    lineEditTotalCows->setValidator(&m_validatorCount);
-    m_form.addRow(QString{tr("Total  Cols : ")}, lineEditTotalCows);
-    m_fields["totalCols"] = lineEditTotalCows;
+    QLineEdit *lineEditTotalCols = new QLineEdit{this};
+    lineEditTotalCols->setValidator(&m_validatorCount);
+    m_form.addRow(QString{tr("Total  Cols : ")}, lineEditTotalCols);
+    m_fields["totalCols"] = lineEditTotalCols;
+    connect(lineEditTotalCols, &QLineEdit::textEdited, this, &NewMapDialog::textHasBeenEdited);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                                Qt::Horizontal, this};

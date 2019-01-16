@@ -2,11 +2,12 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow{parent},
-      m_centralWidget{new QWidget{this}},
+      m_centralWidget{new MyCentraWidget{this}},
       m_mapView{new MapView{this}},
       m_mapScene{new MapScene{m_mapView}},
       m_textureList{new TextureList{this}},
-      m_addTextureButton{new QPushButton{this}}
+      m_addTextureButton{new QPushButton{this}},
+      m_undoStack{new QUndoStack{this}}
 {
     setCentralWidget(m_centralWidget);
 
@@ -15,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
     createMapScene();
     createGridLayout();
     createStatusBar();
+    createUndoView();
 
     m_addTextureButton->setText(tr("Add Texture"));
     connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
@@ -52,8 +54,10 @@ void MainWindow::newMap()
     // ["totalRows"]  => val(int)
     // ["totalCols"]  => val(int)
     auto values = dial.processDial();
-    if(!values.empty())
+    if(!values.empty()){
+        m_undoStack->clear();
         createMapScene(values);
+    }
 }
 
 void MainWindow::open()
@@ -91,6 +95,24 @@ void MainWindow::openTexture()
     m_textureList->addTexture(fileName);
 }
 
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if(event->button() == Qt::LeftButton){
+        int index = m_mapScene->currentTile();
+        if(m_mapScene->canFillTile(index)){
+            QUndoCommand *fillCommand = new FillTileCommand{m_mapScene};
+            m_undoStack->push(fillCommand);
+        }
+    }
+}
+
+//NOT WORKING !!
+/*void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    qDebug() << QString::number(event->x()) +
+                ", " + QString::number(event->y());
+}*/
+
 void MainWindow::createActions()
 {
     // File Menu
@@ -120,8 +142,20 @@ void MainWindow::createActions()
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
 
+    // Edit Menu
+    QMenu *editMenu = menuBar()->addMenu(tr("&Edit"));
+
+    QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
+    undoAct->setShortcut(QKeySequence::Undo);
+    editMenu->addAction(undoAct);
+
+    QAction *redoAct = m_undoStack->createRedoAction(this, tr("&Redo"));
+    redoAct->setShortcut(QKeySequence::Redo);
+    editMenu->addAction(redoAct);
+
     // Help Menu
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
+
     QAction *aboutAct = new QAction{tr("&About"), this};
     aboutAct->setStatusTip(tr("About this software"));
     connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
@@ -133,13 +167,18 @@ void MainWindow::createMapView()
     m_mapView->setScene(m_mapScene);
     m_mapView->setMinimumWidth(640);
     m_mapView->setMinimumHeight(360);
-    m_mapView->setBackgroundBrush(QBrush{QColor{175, 175, 175}});
+    m_mapView->setBackgroundBrush(QBrush{Qt::gray});
+    m_mapView->setCacheMode(QGraphicsView::CacheBackground);
+    m_mapView->holdUndoStack(m_undoStack);
 }
 
 void MainWindow::createMapScene()
 {
     m_mapScene->holdStatusBar(statusBar());
     m_mapScene->holdTextureList(m_textureList);
+    connect(m_mapScene, &MapScene::mouseMoveAndPressLeft,
+            m_mapView, &MapView::mouseMovingAndPressing);
+
     std::map<QString, int> defaultMap{};
     defaultMap["tileWidth"]  = 32;
     defaultMap["tileHeight"] = 32;
@@ -164,9 +203,13 @@ void MainWindow::createGridLayout()
     QGridLayout *centralGridLayout = new QGridLayout{};
     centralGridLayout->addWidget(m_mapView, 0, 0, 2, 1);
     centralGridLayout->addWidget(m_addTextureButton, 0, 1);
-    m_addTextureButton->setMaximumWidth(350);
+    /*m_addTextureButton->setMinimumWidth(300);
+    m_addTextureButton->setMaximumWidth(300);*/
+    m_addTextureButton->setFixedWidth(300);
     centralGridLayout->addWidget(m_textureList, 1, 1);
-    m_textureList->setMaximumWidth(350);
+    /*m_textureList->setMinimumWidth(300);
+    m_textureList->setMaximumWidth(300);*/
+    m_textureList->setFixedWidth(300);
     m_centralWidget->setLayout(centralGridLayout);
 }
 
@@ -175,6 +218,14 @@ void MainWindow::createStatusBar()
     // Status Bar is automatically created the first time statusBar() is called
     // This function return a pointer to the main window's qstatusbar
     statusBar()->showMessage(tr("Ready !"));
+}
+
+void MainWindow::createUndoView()
+{
+    m_undoView = new QUndoView{m_undoStack};
+    m_undoView->setWindowTitle(tr("Command List"));
+    m_undoView->show();
+    m_undoView->setAttribute(Qt::WA_QuitOnClose, false);
 }
 
 void MainWindow::maybeSave()

@@ -8,29 +8,78 @@ MapScene::MapScene(QObject *parent)
 
 void MapScene::holdStatusBar(QStatusBar *statusBar)
 {
-    m_statusBar = statusBar;
+    if(m_statusBar == nullptr)
+        m_statusBar = statusBar;
 }
 
 void MapScene::holdTextureList(TextureList *texturelist)
 {
-    m_textureList = texturelist;
+    if(m_textureList == nullptr)
+        m_textureList = texturelist;
 }
 
 void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
 {
-    clear();
-    m_tiles.clear();
-    m_tilesTextures.clear();
+    clearAllContainers();
+
     m_tileSize = QSize{tileWidth, tileHeight};
     m_rows = rows;
     m_cols = cols;
+
+    QProgressDialog progress{"Creating tiles...", "Cancel", 0, 100};
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setMinimumDuration(0);
+    progress.setValue(0);
+    progress.show();
+
+    int steps{0};
+    const int totalTiles = rows*cols;
+
     for(int i = 0; i < rows; ++i){
         for(int j = 0; j < cols; ++j){
+
             m_tiles.push_back(addRect(j*tileWidth, i*tileHeight, tileWidth, tileHeight));
             m_tilesTextures.push_back(addPixmap(QPixmap{}));
             m_tilesTextures.back()->setPos(j*tileWidth, i*tileHeight);
+            m_tilesTexturesNames.push_back("");
+
+            if(progress.wasCanceled()){
+                clearAllContainers();
+                break;
+            }
+
+            // If 1% of totalTiles >= 1 tile
+            if(totalTiles/100.f >= 1){
+                // Check if current index >= 1% of total * current step
+                if((i*cols+j) >= (totalTiles/100.f)*steps+1){
+                    // 1 step = 1%
+                    ++steps;
+                    progress.setValue(steps);
+                }
+            } else {
+                // Display % relative to current tile
+                progress.setValue(static_cast<int>((i*cols+j)/(totalTiles/100.f)));
+            }
         }
     }
+
+    progress.setValue(100);
+}
+
+int MapScene::currentTile() const
+{
+    return m_currentIndex;
+}
+
+bool MapScene::canFillTile(int index) const
+{
+    if(index != -1 &&
+            m_textureList != nullptr &&
+            !m_currentTextureFileName.isEmpty() &&
+            !isTileTextureSameAsCurrentSelected(index)){
+        return true;
+    }
+    return false;
 }
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
@@ -40,29 +89,24 @@ void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 
 void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    m_mousePos = mouseEvent->scenePos();
     m_mousePosStr = "x(" + QString::number(mouseEvent->scenePos().x(), 'f', 0) +
-                    "), y(" +
-                    QString::number(mouseEvent->scenePos().y(), 'f', 0) + ")";
+                    "), y(" + QString::number(mouseEvent->scenePos().y(), 'f', 0) + ")";
+
+    m_currentIndex = indexRelativeToMouse(mouseEvent->scenePos());
 
     if(m_statusBar != nullptr)
         m_statusBar->showMessage(m_mousePosStr + " - index[" +
-                                 QString::number(indexRelativeToMouse(mouseEvent->scenePos())) +
+                                 QString::number(m_currentIndex) +
                                  "]");
-
-    if(m_mouseLeftPress){
-        if(indexRelativeToMouse(mouseEvent->scenePos()) != -1){
-            fillTile(mouseEvent->scenePos());
-        }
-    }
+    if(m_mouseLeftPress)
+        emit mouseMoveAndPressLeft(this);
 }
 
 void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
     if(mouseEvent->button() == Qt::LeftButton){
         m_mouseLeftPress = true;
-        if(indexRelativeToMouse(mouseEvent->scenePos()) != -1){
-            fillTile(mouseEvent->scenePos());
-        }
     }
 }
 
@@ -71,6 +115,14 @@ void MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if(mouseEvent->button() == Qt::LeftButton){
         m_mouseLeftPress = false;
     }
+}
+
+void MapScene::clearAllContainers()
+{
+    clear();
+    m_tiles.clear();
+    m_tilesTextures.clear();
+    m_tilesTexturesNames.clear();
 }
 
 int MapScene::indexRelativeToMouse(const QPointF& mousePos)
@@ -90,15 +142,50 @@ int MapScene::indexRelativeToMouse(const QPointF& mousePos)
     return m_currentIndex;
 }
 
-void MapScene::fillTile(const QPointF& mousePos)
+bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 {
-    int index = indexRelativeToMouse(mousePos);
-    if(!m_currentTextureFileName.isEmpty()){
-        if(index != -1){
-            QPixmap scaled = m_textureList->getTexture(m_currentTextureFileName).scaled(m_tileSize.width(), m_tileSize.height());
-            m_tilesTextures[static_cast<std::size_t>(index)]->setPixmap(scaled);
-        }
+    if(index != -1){
+        std::size_t id = static_cast<std::size_t>(index);
+        if(m_tilesTexturesNames[id] == m_currentTextureFileName)
+            return true;
     } else {
-        m_statusBar->showMessage("No texture selected !");
+        return true;
     }
+    return false;
+}
+
+void MapScene::fillTile(int index)
+{
+    if(canFillTile(index)){
+        std::size_t id = static_cast<std::size_t>(index);
+        QPixmap scaled = m_textureList->getTexture(m_currentTextureFileName).scaled(m_tileSize.width(), m_tileSize.height());
+        m_tilesTextures[id]->setPixmap(scaled);
+        m_tilesTexturesNames[id] = m_currentTextureFileName;
+    }
+}
+
+void MapScene::fillTile(int index, const QString& textureName)
+{
+    if(index != -1 && m_textureList != nullptr){
+        std::size_t id = static_cast<std::size_t>(index);
+        if(textureName != m_tilesTexturesNames[id]){
+            QPixmap scaled = m_textureList->getTexture(textureName).scaled(m_tileSize.width(), m_tileSize.height());
+            m_tilesTextures[id]->setPixmap(scaled);
+            m_tilesTexturesNames[id] = textureName;
+        }
+    }
+}
+
+void MapScene::deleteTile(int index)
+{
+    if(index != -1){
+        std::size_t id = static_cast<std::size_t>(index);
+        m_tilesTexturesNames[id] = "";
+        m_tilesTextures[id]->setPixmap(QPixmap{});
+    }
+}
+
+QString MapScene::currentTextureName() const
+{
+    return m_currentTextureFileName;
 }

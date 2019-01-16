@@ -5,6 +5,8 @@
 #include "mapview.h"
 #include "mapscene.h"
 #include "texturelist.h"
+#include "filltilecommand.h"
+#include "mycentrawidget.h"
 
 #include <map>
 
@@ -19,6 +21,8 @@
 #include <QListWidget>
 #include <QFileDialog>
 #include <QPixmap>
+#include <QUndoView>
+#include <QUndoStack>
 
 class MainWindow : public QMainWindow
 {
@@ -41,20 +45,31 @@ private slots:
     void openTexture();
 
 private:
+    void mousePressEvent(QMouseEvent *event) override;
+    // MOUSE MOVE EVENT NOT WORKING !!
+    // CREATE CUSTOM CENTRAL WIDGET AND OVERRIDE IN IT ?
+    // void mouseMoveEvent(QMouseEvent *event) override;
+
+private:
     void createActions();
     void createMapView();
     void createMapScene();
     void createMapScene(std::map<QString, int>& values);
     void createGridLayout();
     void createStatusBar();
+    void createUndoView();
     void maybeSave();
 
 private:
-    QWidget     *m_centralWidget{nullptr};
-    MapView     *m_mapView{nullptr};
-    MapScene    *m_mapScene{nullptr};
-    TextureList *m_textureList{nullptr};
-    QPushButton *m_addTextureButton{nullptr};
+    MyCentraWidget *m_centralWidget{nullptr};
+    MapView        *m_mapView{nullptr};
+    MapScene       *m_mapScene{nullptr};
+    TextureList    *m_textureList{nullptr};
+    QPushButton    *m_addTextureButton{nullptr};
+    QUndoStack     *m_undoStack{nullptr};
+    QUndoView      *m_undoView{nullptr};
+    bool            m_mouseLeftPress{false};
+
 };
 
 #endif // MAINWINDOW_H

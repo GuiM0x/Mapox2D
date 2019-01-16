@@ -20,6 +20,9 @@ public:
 public:
     std::map<QString, int> processDial();
 
+private slots:
+    void textHasBeenEdited(const QString& text);
+
 private:
     void createForm();
     void createButtonBox();
@@ -27,7 +30,7 @@ private:
 
 private:
     QIntValidator                 m_validatorSizeTile{0, 999};
-    QIntValidator                 m_validatorCount{0, 9999};
+    QIntValidator                 m_validatorCount{0, 500};
     QFormLayout                   m_form{this};
     std::map<QString, QLineEdit*> m_fields{};
 };
