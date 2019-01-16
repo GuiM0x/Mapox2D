@@ -5,7 +5,7 @@
 #include "mapview.h"
 #include "mapscene.h"
 #include "texturelist.h"
-#include "filltilecommand.h"
+#include "commands/filltilecommand.h"
 #include "mycentrawidget.h"
 
 #include <map>

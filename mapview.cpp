@@ -40,8 +40,11 @@ void MapView::keyPressEvent(QKeyEvent *event)
 
     if(event->key() == Qt::Key_Delete){
         auto mapScene = static_cast<MapScene*>(scene());
-        QUndoCommand *fillCommand = new DeleteTileCommand{mapScene};
-        m_undoStack->push(fillCommand);
+        int index = mapScene->currentTile();
+        if(mapScene->canDeleteTile(index)){
+            QUndoCommand *fillCommand = new DeleteTileCommand{mapScene};
+            m_undoStack->push(fillCommand);
+        }
     }
 }
 

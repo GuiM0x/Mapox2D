@@ -30,6 +30,7 @@ public:
     void createMatrix(int tileWidth, int tileHeight, int rows, int cols);
     int currentTile() const;
     bool canFillTile(int index) const;
+    bool canDeleteTile(int index) const;
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing

@@ -2,8 +2,8 @@
 #define MAPVIEW_H
 
 #include "mapscene.h"
-#include "filltilecommand.h"
-#include "deletetilecommand.h"
+#include "commands/filltilecommand.h"
+#include "commands/deletetilecommand.h"
 
 #include <map>
 

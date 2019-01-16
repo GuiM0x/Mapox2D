@@ -82,6 +82,15 @@ bool MapScene::canFillTile(int index) const
     return false;
 }
 
+bool MapScene::canDeleteTile(int index) const
+{
+    if(index != -1 &&
+            m_tilesTexturesNames[static_cast<std::size_t>(index)] != ""){
+        return true;
+    }
+    return false;
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->text();

@@ -31,9 +31,9 @@ SOURCES += \
     mapview.cpp \
     mapscene.cpp \
     texturelist.cpp \
-    filltilecommand.cpp \
     mycentrawidget.cpp \
-    deletetilecommand.cpp
+    commands/deletetilecommand.cpp \
+    commands/filltilecommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,9 +41,9 @@ HEADERS += \
     mapview.h \
     mapscene.h \
     texturelist.h \
-    filltilecommand.h \
     mycentrawidget.h \
-    deletetilecommand.h
+    commands/deletetilecommand.h \
+    commands/filltilecommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
