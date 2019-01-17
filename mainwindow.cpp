@@ -29,15 +29,29 @@ MainWindow::~MainWindow()
 
 }
 
+void MainWindow::loadFile(const QString& fileName)
+{
+    QFile file{fileName};
+    if(!file.open(QFile::ReadOnly | QFile::Text)){
+        QMessageBox::warning(this, tr("Application"),
+                                     tr("Cannot read file %1:\n%2.")
+                                     .arg(QDir::toNativeSeparators(fileName), file.errorString()));
+        return;
+    }
+
+    // RECUP FROM FILE .m2x CHOOSED BY USER
+    QTextStream in(&file);
+    const QString datas = in.readAll();
+
+    // TO DO : LOAD WITH DATALOAD
+
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("Map loaded"), 3000);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    // In the future, it will be used to check if doc was saved or not.
-    // If not, the user will be invite to save, else the window will be closed
-    const QMessageBox::StandardButton ret = QMessageBox::warning(this,
-                                                                 tr("Application"),
-                                                                 tr("Do you really want to quit ?"),
-                                                                 QMessageBox::Ok | QMessageBox::Cancel);
-    if(ret == QMessageBox::Ok)
+    if(maybeSave())
         event->accept();
     else
         event->ignore();
@@ -45,38 +59,55 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 void MainWindow::newMap()
 {
-    // TODO : Before process new map, check if save is needed and if user want it
-
-    NewMapDialog dial{this};
-    // NewMapDialog::processDial return a map<Qstring, int> that contains values :
-    // ["tileWidth"]  => val(int)
-    // ["tileHeight"] => val(int)
-    // ["totalRows"]  => val(int)
-    // ["totalCols"]  => val(int)
-    auto values = dial.processDial();
-    if(!values.empty()){
-        m_undoStack->clear();
-        createMapScene(values);
+    if(maybeSave()){
+        NewMapDialog dial{this};
+        // NewMapDialog::processDial return a map<Qstring, int> that contains values :
+        // ["tileWidth"]  => val(int)
+        // ["tileHeight"] => val(int)
+        // ["totalRows"]  => val(int)
+        // ["totalCols"]  => val(int)
+        auto values = dial.processDial();
+        if(!values.empty()){
+            m_undoStack->clear();
+            createMapScene(values);
+        }
+        setCurrentFile(QString{});
     }
 }
 
 void MainWindow::open()
 {
-    qDebug() << "Slots open() triggered";
+    if(maybeSave()){
+        QString fileName = QFileDialog::getOpenFileName(this);
+        if(!fileName.isEmpty())
+            loadFile(fileName);
+    }
 }
 
-void MainWindow::save()
+bool MainWindow::save()
 {
-    qDebug() << "Slots save() triggered";
+    if(m_currentFile.isEmpty())
+        return saveAs();
+    qDebug() << "MainWindow::m_currentFile = " << m_currentFile;
+    return saveFile(m_currentFile);
 }
 
-void MainWindow::saveAs()
+bool MainWindow::saveAs()
 {
-    qDebug() << "Slots saveAs() triggered";
+    QFileDialog dial{this};
+    dial.setWindowModality(Qt::WindowModal);
+    dial.setAcceptMode(QFileDialog::AcceptSave);
+    dial.setDefaultSuffix("m2x");
+    dial.setNameFilter(tr("Map (*.m2x)"));
+    dial.selectFile("untitled");
+    if(dial.exec() != QDialog::Accepted)
+        return false;
+    return saveFile(dial.selectedFiles().first());
 }
 
 void MainWindow::docWasModified()
 {
+    // TO DO ?
     qDebug() << "Slots docWasModified() triggered";
 }
 
@@ -105,13 +136,6 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         }
     }
 }
-
-//NOT WORKING !!
-/*void MainWindow::mouseMoveEvent(QMouseEvent *event)
-{
-    qDebug() << QString::number(event->x()) +
-                ", " + QString::number(event->y());
-}*/
 
 void MainWindow::createActions()
 {
@@ -228,7 +252,43 @@ void MainWindow::createUndoView()
     m_undoView->setAttribute(Qt::WA_QuitOnClose, false);
 }
 
-void MainWindow::maybeSave()
+bool MainWindow::maybeSave()
 {
+    if(!m_mapScene->isModified())
+        return true;
+    const QMessageBox::StandardButton ret
+            = QMessageBox::warning(this, tr("Application"),
+                                   tr("The document has been modified.\n"
+                                      "Do you want to save your changes?"),
+                                   QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+    switch (ret) {
+        case QMessageBox::Save:
+            return save();
+        case QMessageBox::Cancel:
+            return false;
+        default:
+            break;
+    }
+    return true;
+}
 
+bool MainWindow::saveFile(const QString &fileName)
+{
+    DataSaver ds{m_mapScene, m_textureList};
+    if(!ds.saveAllDatas(fileName))
+        return false;
+
+    setCurrentFile(fileName);
+    statusBar()->showMessage("Map saved", 3000);
+
+    return true;
+}
+
+void MainWindow::setCurrentFile(const QString& fileName)
+{
+    m_currentFile = fileName;
+    QString showName = m_currentFile;
+    if(m_currentFile.isEmpty())
+        showName = "Untitled";
+    setWindowFilePath(showName);
 }

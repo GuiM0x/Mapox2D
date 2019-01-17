@@ -7,6 +7,7 @@
 #include "texturelist.h"
 #include "commands/filltilecommand.h"
 #include "mycentrawidget.h"
+#include "datasaver.h"
 
 #include <map>
 
@@ -32,23 +33,22 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    void loadFile(const QString& fileName);
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void newMap();
     void open();
-    void save();
-    void saveAs();
+    bool save();
+    bool saveAs();
     void docWasModified();
     void about();
     void openTexture();
 
 private:
     void mousePressEvent(QMouseEvent *event) override;
-    // MOUSE MOVE EVENT NOT WORKING !!
-    // CREATE CUSTOM CENTRAL WIDGET AND OVERRIDE IN IT ?
-    // void mouseMoveEvent(QMouseEvent *event) override;
 
 private:
     void createActions();
@@ -58,7 +58,10 @@ private:
     void createGridLayout();
     void createStatusBar();
     void createUndoView();
-    void maybeSave();
+
+    bool maybeSave();
+    bool saveFile(const QString& fileName);
+    void setCurrentFile(const QString& fileName);
 
 private:
     MyCentraWidget *m_centralWidget{nullptr};
@@ -69,6 +72,7 @@ private:
     QUndoStack     *m_undoStack{nullptr};
     QUndoView      *m_undoView{nullptr};
     bool            m_mouseLeftPress{false};
+    QString         m_currentFile{};
 
 };
 

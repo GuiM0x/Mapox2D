@@ -31,6 +31,8 @@ public:
     int currentTile() const;
     bool canFillTile(int index) const;
     bool canDeleteTile(int index) const;
+    bool isModified() const;
+    void loadMap(const QString& datas);
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing
@@ -71,6 +73,7 @@ private:
     int                               m_currentIndex{};
     bool                              m_mouseLeftPress{false};
     QString                           m_currentTextureFileName{};
+    bool                              m_modified{false};
 };
 
 #endif // MAPSCENE_H

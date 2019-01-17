@@ -33,7 +33,8 @@ SOURCES += \
     texturelist.cpp \
     mycentrawidget.cpp \
     commands/deletetilecommand.cpp \
-    commands/filltilecommand.cpp
+    commands/filltilecommand.cpp \
+    datasaver.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,7 +44,9 @@ HEADERS += \
     texturelist.h \
     mycentrawidget.h \
     commands/deletetilecommand.h \
-    commands/filltilecommand.h
+    commands/filltilecommand.h \
+    datasaver.h \
+    tools/stringtools.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

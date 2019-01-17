@@ -8,13 +8,17 @@ TextureList::TextureList(QWidget *parent)
 
 void TextureList::addTexture(const QString& fileName)
 {
-    m_texturesPaths[cutFileName(fileName)] = fileName;
-    QPixmap texture{fileName};
-    m_textures[cutFileName(fileName)] = texture;
-    QPixmap scaledTexture = texture.scaled(iconSize());
-    QIcon icon{scaledTexture};
-    QListWidgetItem *item = new QListWidgetItem{icon, cutFileName(fileName)};
-    addItem(item);
+    const QString cuttedFileName = StringTools::cutFileName(fileName);
+
+    if(!textureAlreadyExists(cuttedFileName)){
+        m_texturesPaths[cuttedFileName] = fileName;
+        QPixmap texture{fileName};
+        m_textures[cuttedFileName] = texture;
+        QPixmap scaledTexture = texture.scaled(iconSize());
+        QIcon icon{scaledTexture};
+        QListWidgetItem *item = new QListWidgetItem{icon, cuttedFileName};
+        addItem(item);
+    }
 }
 
 QPixmap TextureList::getTexture(const QString &textureName)
@@ -24,18 +28,18 @@ QPixmap TextureList::getTexture(const QString &textureName)
     return QPixmap{};
 }
 
-QString TextureList::cutFileName(const QString& fileName) const
+std::map<QString, QPixmap>* TextureList::textureList()
 {
-    QString cutted{};
-    int index{};
-    for(int i = fileName.length(); i > 0; --i){
-        if(fileName[i-1] == '/'){
-            index = i;
-            break;
-        }
+    return &m_textures;
+}
+
+bool TextureList::textureAlreadyExists(const QString &fileName)
+{
+    auto it = m_textures.find(fileName);
+    if(it != std::end(m_textures)){
+        QMessageBox::information(this, "Mapox2D",
+                               tr("Texture already loaded !"));
+        return true;
     }
-    for(int i = index; i < fileName.size(); ++i){
-        cutted += fileName[i];
-    }
-    return cutted;
+    return false;
 }

@@ -91,6 +91,16 @@ bool MapScene::canDeleteTile(int index) const
     return false;
 }
 
+bool MapScene::isModified() const
+{
+    return m_modified;
+}
+
+void MapScene::loadMap(const QString& datas)
+{
+    qDebug() << "Datas loaded = " + datas;
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->text();
@@ -173,6 +183,7 @@ void MapScene::fillTile(int index)
     }
 }
 
+// USED BY COMMANDS
 void MapScene::fillTile(int index, const QString& textureName)
 {
     if(index != -1 && m_textureList != nullptr){
@@ -185,6 +196,7 @@ void MapScene::fillTile(int index, const QString& textureName)
     }
 }
 
+// USED BY COMMANDS
 void MapScene::deleteTile(int index)
 {
     if(index != -1){

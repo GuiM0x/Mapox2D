@@ -1,9 +1,12 @@
 #ifndef TEXTURELIST_H
 #define TEXTURELIST_H
 
+#include "tools/stringtools.h"
+
 #include <QDebug>
 #include <QListWidget>
 #include <QStringList>
+#include <QMessageBox>
 
 class TextureList : public QListWidget
 {
@@ -15,9 +18,10 @@ public:
 public:
     void addTexture(const QString& fileName);
     QPixmap getTexture(const QString& textureName);
+    std::map<QString, QPixmap>* textureList();
 
 private:
-    QString cutFileName(const QString& fileName) const;
+    bool textureAlreadyExists(const QString& fileName);
 
 private:
     std::map<QString, QPixmap> m_textures{};
