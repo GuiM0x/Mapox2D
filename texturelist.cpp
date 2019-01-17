@@ -9,21 +9,24 @@ TextureList::TextureList(QWidget *parent)
 void TextureList::addTexture(const QString& fileName)
 {
     const QString cuttedFileName = StringTools::cutFileName(fileName);
+    const QString cuttedExtension = StringTools::cutExtensionFileName(cuttedFileName);
 
-    if(!textureAlreadyExists(cuttedFileName)){
-        m_texturesPaths[cuttedFileName] = fileName;
+    if(!textureAlreadyExists(cuttedExtension)){
+        m_texturesPaths[cuttedExtension] = fileName;
         QPixmap texture{fileName};
-        m_textures[cuttedFileName] = texture;
+        if(texture.isNull())
+            throw(std::runtime_error{"TextureList::addTexture() - texture null - " + fileName.toStdString()});
+        m_textures[cuttedExtension] = texture;
         QPixmap scaledTexture = texture.scaled(iconSize());
         QIcon icon{scaledTexture};
-        QListWidgetItem *item = new QListWidgetItem{icon, cuttedFileName};
+        QListWidgetItem *item = new QListWidgetItem{icon, cuttedExtension};
         addItem(item);
     }
 }
 
 QPixmap TextureList::getTexture(const QString &textureName)
 {
-    if(m_textures.find(textureName) != std::end(m_textures))
+    if(m_textures.find(textureName) != std::end(m_textures))  
         return m_textures[textureName].copy();
     return QPixmap{};
 }
@@ -31,6 +34,13 @@ QPixmap TextureList::getTexture(const QString &textureName)
 std::map<QString, QPixmap>* TextureList::textureList()
 {
     return &m_textures;
+}
+
+void TextureList::clean()
+{
+    clear();
+    m_textures.clear();
+    m_texturesPaths.clear();
 }
 
 bool TextureList::textureAlreadyExists(const QString &fileName)

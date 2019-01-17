@@ -96,9 +96,57 @@ bool MapScene::isModified() const
     return m_modified;
 }
 
-void MapScene::loadMap(const QString& datas)
+int MapScene::rows() const
 {
-    qDebug() << "Datas loaded = " + datas;
+    return m_rows;
+}
+
+int MapScene::cols() const
+{
+    return m_cols;
+}
+
+int MapScene::tileWidth() const
+{
+    return m_tileSize.width();
+}
+
+int MapScene::tileHeight() const
+{
+    return m_tileSize.height();
+}
+
+std::vector<QString>* MapScene::allTilesName()
+{
+    return &m_tilesTexturesNames;
+}
+
+// USED BY COMMANDS
+void MapScene::fillTile(int index, const QString& textureName)
+{
+    if(index != -1 && m_textureList != nullptr){
+        std::size_t id = static_cast<std::size_t>(index);
+        if(textureName != m_tilesTexturesNames[id]){
+            QPixmap scaled = m_textureList->getTexture(textureName).scaled(m_tileSize.width(), m_tileSize.height());
+            m_tilesTextures[id]->setPixmap(scaled);
+            m_tilesTexturesNames[id] = textureName;
+        }
+    }
+}
+
+// USED BY COMMANDS
+void MapScene::deleteTile(int index)
+{
+    if(index != -1){
+        std::size_t id = static_cast<std::size_t>(index);
+        m_tilesTexturesNames[id] = "";
+        m_tilesTextures[id]->setPixmap(QPixmap{});
+    }
+}
+
+QString MapScene::currentTextureName() const
+{
+    return m_currentTextureFileName;
 }
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
@@ -134,14 +182,6 @@ void MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     if(mouseEvent->button() == Qt::LeftButton){
         m_mouseLeftPress = false;
     }
-}
-
-void MapScene::clearAllContainers()
-{
-    clear();
-    m_tiles.clear();
-    m_tilesTextures.clear();
-    m_tilesTexturesNames.clear();
 }
 
 int MapScene::indexRelativeToMouse(const QPointF& mousePos)
@@ -183,30 +223,10 @@ void MapScene::fillTile(int index)
     }
 }
 
-// USED BY COMMANDS
-void MapScene::fillTile(int index, const QString& textureName)
+void MapScene::clearAllContainers()
 {
-    if(index != -1 && m_textureList != nullptr){
-        std::size_t id = static_cast<std::size_t>(index);
-        if(textureName != m_tilesTexturesNames[id]){
-            QPixmap scaled = m_textureList->getTexture(textureName).scaled(m_tileSize.width(), m_tileSize.height());
-            m_tilesTextures[id]->setPixmap(scaled);
-            m_tilesTexturesNames[id] = textureName;
-        }
-    }
-}
-
-// USED BY COMMANDS
-void MapScene::deleteTile(int index)
-{
-    if(index != -1){
-        std::size_t id = static_cast<std::size_t>(index);
-        m_tilesTexturesNames[id] = "";
-        m_tilesTextures[id]->setPixmap(QPixmap{});
-    }
-}
-
-QString MapScene::currentTextureName() const
-{
-    return m_currentTextureFileName;
+    clear();
+    m_tiles.clear();
+    m_tilesTextures.clear();
+    m_tilesTexturesNames.clear();
 }

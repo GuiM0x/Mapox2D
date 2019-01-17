@@ -31,10 +31,11 @@ SOURCES += \
     mapview.cpp \
     mapscene.cpp \
     texturelist.cpp \
-    mycentrawidget.cpp \
     commands/deletetilecommand.cpp \
     commands/filltilecommand.cpp \
-    datasaver.cpp
+    datasaver.cpp \
+    mycentralwidget.cpp \
+    dataloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -42,11 +43,12 @@ HEADERS += \
     mapview.h \
     mapscene.h \
     texturelist.h \
-    mycentrawidget.h \
     commands/deletetilecommand.h \
     commands/filltilecommand.h \
     datasaver.h \
-    tools/stringtools.h
+    tools/stringtools.h \
+    mycentralwidget.h \
+    dataloader.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

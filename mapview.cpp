@@ -12,6 +12,12 @@ void MapView::holdUndoStack(QUndoStack *undoStack)
     m_undoStack = undoStack;
 }
 
+void MapView::reset(const QRectF& mapSceneBounding)
+{
+    setSceneRect(mapSceneBounding);
+    resetTransform();
+}
+
 void MapView::mouseMovingAndPressing(MapScene* mapScene)
 {
     int index = mapScene->currentTile();

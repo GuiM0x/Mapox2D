@@ -32,7 +32,14 @@ public:
     bool canFillTile(int index) const;
     bool canDeleteTile(int index) const;
     bool isModified() const;
-    void loadMap(const QString& datas);
+    int rows() const;
+    int cols() const;
+    int tileWidth() const;
+    int tileHeight() const;
+    std::vector<QString>* allTilesName();
+    void fillTile(int index, const QString& textureName);
+    void deleteTile(int index);
+    QString currentTextureName() const;
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing
@@ -47,17 +54,11 @@ private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-
-    void clearAllContainers();
     int indexRelativeToMouse(const QPointF& mousePos);
     bool isTileTextureSameAsCurrentSelected(int index)const;
     void openLoadingDialog();
     void fillTile(int index);
-
-public:
-    void fillTile(int index, const QString& textureName);
-    void deleteTile(int index);
-    QString currentTextureName() const;
+    void clearAllContainers();
 
 private:
     std::vector<QGraphicsRectItem*>   m_tiles{};

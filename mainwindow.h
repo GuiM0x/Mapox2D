@@ -6,8 +6,9 @@
 #include "mapscene.h"
 #include "texturelist.h"
 #include "commands/filltilecommand.h"
-#include "mycentrawidget.h"
+#include "mycentralwidget.h"
 #include "datasaver.h"
+#include "dataloader.h"
 
 #include <map>
 
@@ -32,8 +33,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-
-    void loadFile(const QString& fileName);
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -62,9 +61,10 @@ private:
     bool maybeSave();
     bool saveFile(const QString& fileName);
     void setCurrentFile(const QString& fileName);
+    void loadFile(const QString& fileName);
 
 private:
-    MyCentraWidget *m_centralWidget{nullptr};
+    MyCentralWidget *m_centralWidget{nullptr};
     MapView        *m_mapView{nullptr};
     MapScene       *m_mapScene{nullptr};
     TextureList    *m_textureList{nullptr};

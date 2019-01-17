@@ -19,6 +19,7 @@ public:
     void addTexture(const QString& fileName);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();
+    void clean();
 
 private:
     bool textureAlreadyExists(const QString& fileName);

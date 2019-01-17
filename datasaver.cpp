@@ -10,7 +10,8 @@ bool DataSaver::saveAllDatas(const QString& fileName)
 {
     //qDebug() << "File path selected : " << fileName;
     textureToAppData(fileName);
-    if(matrixToData())
+    matrixToData();
+    if(dataToFile())
         return true;
     return false;
 }
@@ -51,10 +52,34 @@ void DataSaver::textureToAppData(const QString& fileName)
     }
 }
 
-bool DataSaver::matrixToData() const
+void DataSaver::matrixToData()
+{
+    int rows = m_mapScene->rows();
+    int cols = m_mapScene->cols();
+    int tileWidth = m_mapScene->tileWidth();
+    int tileHeight = m_mapScene->tileHeight();
+    m_matrixDatas.push_back("tileWidth=");
+    m_matrixDatas.push_back(QString::number(tileWidth));
+    m_matrixDatas.push_back("tileHeight=");
+    m_matrixDatas.push_back(QString::number(tileHeight));
+    m_matrixDatas.push_back("rows=");
+    m_matrixDatas.push_back(QString::number(rows));
+    m_matrixDatas.push_back("cols=");
+    m_matrixDatas.push_back(QString::number(cols));
+    m_matrixDatas.push_back("matrix=");
+    std::vector<QString> *allTilesName = m_mapScene->allTilesName();
+    for(std::size_t i = 0; i < allTilesName->size(); ++i){
+        if(!(*allTilesName)[i].isEmpty()){
+            m_matrixDatas.push_back(QString::number(i));
+            m_matrixDatas.push_back((*allTilesName)[i]);
+        }
+    }
+}
+
+bool DataSaver::dataToFile() const
 {
     QFile file{m_fullPathSaveFile};
-    if(!file.open(QFile::WriteOnly | QFile::Text)){
+    if(!file.open(QFile::WriteOnly)){
         QMessageBox::warning(nullptr, QObject::tr("Application"),
                                       QObject::tr("Cannot write file %1:\n%2.")
                                       .arg(QDir::toNativeSeparators(m_fullPathSaveFile),
@@ -62,11 +87,16 @@ bool DataSaver::matrixToData() const
         return false;
     }
 
-    QTextStream out(&file);
-    out << "project=" + m_folderProjectName + "\n";
-    out << "texturesPath=";
+    // Prepare to write in file
+    QDataStream out{&file};
+    out << QString("project="); // implicit break line
+    out << QString(m_folderProjectName); // implicit break line
+    out << QString("texturesPath="); // implicit break line
     for(const auto& x : m_texturesNewPath){
-        out << x << ';';
+        out << QString(x); // implicit break line
+    }
+    for(const auto& x : m_matrixDatas){
+        out << QString(x); // implicit break line
     }
 
     return true;

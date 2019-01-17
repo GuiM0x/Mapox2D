@@ -2,7 +2,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow{parent},
-      m_centralWidget{new MyCentraWidget{this}},
+      m_centralWidget{new MyCentralWidget{this}},
       m_mapView{new MapView{this}},
       m_mapScene{new MapScene{m_mapView}},
       m_textureList{new TextureList{this}},
@@ -29,26 +29,6 @@ MainWindow::~MainWindow()
 
 }
 
-void MainWindow::loadFile(const QString& fileName)
-{
-    QFile file{fileName};
-    if(!file.open(QFile::ReadOnly | QFile::Text)){
-        QMessageBox::warning(this, tr("Application"),
-                                     tr("Cannot read file %1:\n%2.")
-                                     .arg(QDir::toNativeSeparators(fileName), file.errorString()));
-        return;
-    }
-
-    // RECUP FROM FILE .m2x CHOOSED BY USER
-    QTextStream in(&file);
-    const QString datas = in.readAll();
-
-    // TO DO : LOAD WITH DATALOAD
-
-    setCurrentFile(fileName);
-    statusBar()->showMessage(tr("Map loaded"), 3000);
-}
-
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     if(maybeSave())
@@ -69,6 +49,7 @@ void MainWindow::newMap()
         auto values = dial.processDial();
         if(!values.empty()){
             m_undoStack->clear();
+            m_textureList->clean();
             createMapScene(values);
         }
         setCurrentFile(QString{});
@@ -78,7 +59,8 @@ void MainWindow::newMap()
 void MainWindow::open()
 {
     if(maybeSave()){
-        QString fileName = QFileDialog::getOpenFileName(this);
+        const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
+                                                              tr("M2X Files (*.m2x)"));
         if(!fileName.isEmpty())
             loadFile(fileName);
     }
@@ -218,8 +200,7 @@ void MainWindow::createMapScene(std::map<QString, int>& values)
                              values["totalRows"],
                              values["totalCols"]);
 
-    m_mapView->setSceneRect(m_mapScene->itemsBoundingRect());
-    m_mapView->resetTransform();
+    m_mapView->reset(m_mapScene->itemsBoundingRect());
 }
 
 void MainWindow::createGridLayout()
@@ -291,4 +272,16 @@ void MainWindow::setCurrentFile(const QString& fileName)
     if(m_currentFile.isEmpty())
         showName = "Untitled";
     setWindowFilePath(showName);
+}
+
+void MainWindow::loadFile(const QString& fileName)
+{
+    DataLoader dl{m_textureList, m_mapScene};
+    dl.loadData(fileName);
+
+    m_mapView->reset(m_mapScene->itemsBoundingRect());
+
+    m_undoStack->clear();
+    setCurrentFile(fileName);
+    statusBar()->showMessage(tr("Map loaded"), 3000);
 }

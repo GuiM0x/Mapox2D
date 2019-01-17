@@ -22,6 +22,7 @@ public:
 
 public:
     void holdUndoStack(QUndoStack *undoStack);
+    void reset(const QRectF& mapSceneBounding);
 
 public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
