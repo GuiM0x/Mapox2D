@@ -25,44 +25,22 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
     m_tileSize = QSize{tileWidth, tileHeight};
     m_rows = rows;
     m_cols = cols;
-
-    QProgressDialog progress{"Creating tiles...", "Cancel", 0, 100};
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setMinimumDuration(0);
-    progress.setValue(0);
-    progress.show();
-
-    int steps{0};
     const int totalTiles = rows*cols;
+    LoadingMapDialog progress{totalTiles, "Creating tiles...", "Cancel", 0, 100};
 
     for(int i = 0; i < rows; ++i){
         for(int j = 0; j < cols; ++j){
-
             m_tiles.push_back(addRect(j*tileWidth, i*tileHeight, tileWidth, tileHeight));
             m_tilesTextures.push_back(addPixmap(QPixmap{}));
             m_tilesTextures.back()->setPos(j*tileWidth, i*tileHeight);
             m_tilesTexturesNames.push_back("");
-
             if(progress.wasCanceled()){
                 clearAllContainers();
                 break;
             }
-
-            // If 1% of totalTiles >= 1 tile
-            if(totalTiles/100.f >= 1){
-                // Check if current index >= 1% of total * current step
-                if((i*cols+j) >= (totalTiles/100.f)*steps+1){
-                    // 1 step = 1%
-                    ++steps;
-                    progress.setValue(steps);
-                }
-            } else {
-                // Display % relative to current tile
-                progress.setValue(static_cast<int>((i*cols+j)/(totalTiles/100.f)));
-            }
+            progress.updateBar(i*cols+j);
         }
     }
-
     progress.setValue(100);
 }
 
@@ -147,6 +125,37 @@ void MapScene::deleteTile(int index)
 QString MapScene::currentTextureName() const
 {
     return m_currentTextureFileName;
+}
+
+// USED BY COMMANDS
+std::vector<QString> MapScene::fillAll(const QString& textureName)
+{
+    const std::vector<QString> oldTilesTexturesNames{m_tilesTexturesNames};
+    const int gridSize = m_rows*m_cols;
+    LoadingMapDialog progress{gridSize, "Filling map...", "Cancel", 0, 100};
+    for(int i = 0; i < gridSize; ++i){
+        fillTile(i, textureName);
+        progress.updateBar(i);
+    }
+    progress.setValue(100);
+    return oldTilesTexturesNames;
+}
+
+// USED BY COMMANDS
+void MapScene::fillAll(const std::vector<QString>& oldTilesTexturesNames)
+{
+    const int gridSize = m_rows*m_cols;
+    LoadingMapDialog progress{gridSize, "Filling map...", "Cancel", 0, 100};
+    for(std::size_t i = 0; i < oldTilesTexturesNames.size(); ++i){
+        if(!oldTilesTexturesNames[i].isEmpty()){
+            fillTile(static_cast<int>(i), oldTilesTexturesNames[i]);
+        } else {
+            m_tilesTextures[i]->setPixmap(QPixmap{});
+            m_tilesTexturesNames[i] = "";
+        }
+        progress.updateBar(static_cast<int>(i));
+    }
+    progress.setValue(100);
 }
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)

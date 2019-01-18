@@ -13,10 +13,12 @@ DeleteTileCommand::DeleteTileCommand(MapScene* mapScene, QUndoCommand *parent)
 
 void DeleteTileCommand::undo()
 {
+    assert(m_mapScene != nullptr && "DeleteTileCommand::m_mapScene cannot be null");
     m_mapScene->fillTile(m_tileIndex, m_textureName);
 }
 
 void DeleteTileCommand::redo()
 {
+    assert(m_mapScene != nullptr && "DeleteTileCommand::m_mapScene cannot be null");
     m_mapScene->deleteTile(m_tileIndex);
 }

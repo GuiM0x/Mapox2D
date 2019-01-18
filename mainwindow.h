@@ -1,11 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "newmapdialog.h"
 #include "mapview.h"
 #include "mapscene.h"
 #include "texturelist.h"
 #include "commands/filltilecommand.h"
+#include "commands/fillallcommand.h"
+#include "dialogs/newmapdialog.h"
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"
 
@@ -44,6 +45,8 @@ private slots:
     void docWasModified();
     void about();
     void openTexture();
+    void fillAll();
+    void quit();
 
 private:
     void mousePressEvent(QMouseEvent *event) override;

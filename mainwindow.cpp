@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
       m_undoStack{new QUndoStack{this}}
 {
     setCentralWidget(m_centralWidget);
+    setWindowFilePath("Untitled  - Mapox2D");
 
     createActions();
     createMapView();
@@ -53,8 +54,8 @@ void MainWindow::newMap()
             m_undoStack->clear();
             m_textureList->clean();
             createMapScene(values);
+            setCurrentFile(QString{});
         }
-        setCurrentFile(QString{});
     }
 }
 
@@ -110,22 +111,35 @@ void MainWindow::openTexture()
         m_textureList->addTexture(fileName);
 }
 
+void MainWindow::fillAll()
+{
+    const QString textureName = m_mapScene->currentTextureName();
+    if(!textureName.isEmpty()){
+        QUndoCommand *fillAllCommand = new FillAllCommand{m_mapScene, textureName};
+        m_undoStack->push(fillAllCommand);
+    }
+}
+
+void MainWindow::quit()
+{
+    if(maybeSave())
+        qApp->quit();
+}
+
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         int index = m_mapScene->currentTile();
         if(m_mapScene->canFillTile(index)){
-            QUndoCommand *fillCommand = new FillTileCommand{m_mapScene};
-            m_undoStack->push(fillCommand);
-            /*connect(static_cast<FillTileCommand*>(fillCommand), &FillTileCommand::docModified,
-                    this, &MainWindow::docWasModified);*/
+            QUndoCommand *fillTileCommand = new FillTileCommand{m_mapScene};
+            m_undoStack->push(fillTileCommand);
         }
     }
 }
 
 void MainWindow::createActions()
 {
-    // File Menu
+    ///////////////// File Menu
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
 
     QAction *newAct = new QAction{tr("&New map"), this};
@@ -133,6 +147,8 @@ void MainWindow::createActions()
     newAct->setStatusTip(tr("Create a new map"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newMap);
     fileMenu->addAction(newAct);
+
+    fileMenu->addSeparator();
 
     QAction *openAct = new QAction{tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
@@ -152,7 +168,15 @@ void MainWindow::createActions()
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
 
-    // Edit Menu
+    fileMenu->addSeparator();
+
+    QAction *quitAct = new QAction{tr("&Quit"), this};
+    quitAct->setShortcut(QKeySequence{tr("Ctrl+Q")});
+    quitAct->setStatusTip(tr("Shutdown Mapox2D"));
+    connect(quitAct, &QAction::triggered, this, &MainWindow::quit);
+    fileMenu->addAction(quitAct);
+
+    ///////////////// Edit Menu
     QMenu *editMenu = menuBar()->addMenu(tr("&Edit"));
 
     QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
@@ -163,7 +187,15 @@ void MainWindow::createActions()
     redoAct->setShortcut(QKeySequence::Redo);
     editMenu->addAction(redoAct);
 
-    // Help Menu
+    editMenu->addSeparator();
+
+    QAction *fillAllAct = new QAction{tr("F&ill with current texture"), this};
+    fillAllAct->setShortcut(QKeySequence{tr("Ctrl+,")});
+    saveAsAct->setStatusTip(tr("Fill the grid with selected texture in list"));
+    connect(fillAllAct, &QAction::triggered, this, &MainWindow::fillAll);
+    editMenu->addAction(fillAllAct);
+
+    ///////////////// Help Menu
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *aboutAct = new QAction{tr("&About"), this};
@@ -213,12 +245,8 @@ void MainWindow::createGridLayout()
     QGridLayout *centralGridLayout = new QGridLayout{};
     centralGridLayout->addWidget(m_mapView, 0, 0, 2, 1);
     centralGridLayout->addWidget(m_addTextureButton, 0, 1);
-    /*m_addTextureButton->setMinimumWidth(300);
-    m_addTextureButton->setMaximumWidth(300);*/
     m_addTextureButton->setFixedWidth(300);
     centralGridLayout->addWidget(m_textureList, 1, 1);
-    /*m_textureList->setMinimumWidth(300);
-    m_textureList->setMaximumWidth(300);*/
     m_textureList->setFixedWidth(300);
     m_centralWidget->setLayout(centralGridLayout);
 }
@@ -275,10 +303,10 @@ bool MainWindow::saveFile(const QString &fileName)
 void MainWindow::setCurrentFile(const QString& fileName)
 {
     m_currentFile = fileName;
-    QString showName = m_currentFile;
+    QString showName = StringTools::cutExtensionFileName(m_currentFile);
     if(m_currentFile.isEmpty())
         showName = "Untitled";
-    setWindowFilePath(showName);
+    setWindowFilePath(showName + " - Mapox2D");
 }
 
 void MainWindow::loadFile(const QString& fileName)

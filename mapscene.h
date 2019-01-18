@@ -2,6 +2,7 @@
 #define MAPSCENE_H
 
 #include "texturelist.h"
+#include "dialogs/loadingmapdialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -40,6 +41,8 @@ public:
     void fillTile(int index, const QString& textureName);
     void deleteTile(int index);
     QString currentTextureName() const;
+    std::vector<QString> fillAll(const QString& textureName);
+    void fillAll(const std::vector<QString>& oldTilesTexturesName);
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing

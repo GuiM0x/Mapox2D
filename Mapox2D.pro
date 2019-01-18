@@ -27,18 +27,19 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    newmapdialog.cpp \
     mapview.cpp \
     mapscene.cpp \
     texturelist.cpp \
     commands/deletetilecommand.cpp \
     commands/filltilecommand.cpp \
     tools/dataloader.cpp \
-    tools/datasaver.cpp
+    tools/datasaver.cpp \
+    commands/fillallcommand.cpp \
+    dialogs/loadingmapdialog.cpp \
+    dialogs/newmapdialog.cpp
 
 HEADERS += \
         mainwindow.h \
-    newmapdialog.h \
     mapview.h \
     mapscene.h \
     texturelist.h \
@@ -46,7 +47,10 @@ HEADERS += \
     commands/filltilecommand.h \
     tools/stringtools.h \
     tools/dataloader.h \
-    tools/datasaver.h
+    tools/datasaver.h \
+    commands/fillallcommand.h \
+    dialogs/loadingmapdialog.h \
+    dialogs/newmapdialog.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

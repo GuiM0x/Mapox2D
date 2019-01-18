@@ -13,10 +13,12 @@ FillTileCommand::FillTileCommand(MapScene *mapScene, QUndoCommand *parent)
 
 void FillTileCommand::undo()
 {
+    assert(m_mapScene != nullptr && "FillTileCommand::m_mapScene cannot be null");
     m_mapScene->deleteTile(m_tileIndex);
 }
 
 void FillTileCommand::redo()
 {
+    assert(m_mapScene != nullptr && "FillTileCommand::m_mapScene cannot be null");
     m_mapScene->fillTile(m_tileIndex, m_textureName);
 }
