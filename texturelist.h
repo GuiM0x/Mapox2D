@@ -15,8 +15,11 @@ class TextureList : public QListWidget
 public:
     TextureList(QWidget *parent = nullptr);
 
+signals:
+    void docModified();
+
 public:
-    void addTexture(const QString& fileName);
+    void addTexture(const QString& fileName, bool fromLoadFile = false);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();
     void clean();

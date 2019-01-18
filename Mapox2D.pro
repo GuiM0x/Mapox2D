@@ -33,9 +33,8 @@ SOURCES += \
     texturelist.cpp \
     commands/deletetilecommand.cpp \
     commands/filltilecommand.cpp \
-    datasaver.cpp \
-    mycentralwidget.cpp \
-    dataloader.cpp
+    tools/dataloader.cpp \
+    tools/datasaver.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -45,10 +44,9 @@ HEADERS += \
     texturelist.h \
     commands/deletetilecommand.h \
     commands/filltilecommand.h \
-    datasaver.h \
     tools/stringtools.h \
-    mycentralwidget.h \
-    dataloader.h
+    tools/dataloader.h \
+    tools/datasaver.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

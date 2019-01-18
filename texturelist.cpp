@@ -6,7 +6,7 @@ TextureList::TextureList(QWidget *parent)
     setIconSize(QSize{64, 64});
 }
 
-void TextureList::addTexture(const QString& fileName)
+void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
 {
     const QString cuttedFileName = StringTools::cutFileName(fileName);
     const QString cuttedExtension = StringTools::cutExtensionFileName(cuttedFileName);
@@ -14,6 +14,8 @@ void TextureList::addTexture(const QString& fileName)
     if(!textureAlreadyExists(cuttedExtension)){
         m_texturesPaths[cuttedExtension] = fileName;
         QPixmap texture{fileName};
+        if(fileName.isEmpty())
+            throw(std::runtime_error{"TextureList::addTexture() - filename empty - "});
         if(texture.isNull())
             throw(std::runtime_error{"TextureList::addTexture() - texture null - " + fileName.toStdString()});
         m_textures[cuttedExtension] = texture;
@@ -21,12 +23,14 @@ void TextureList::addTexture(const QString& fileName)
         QIcon icon{scaledTexture};
         QListWidgetItem *item = new QListWidgetItem{icon, cuttedExtension};
         addItem(item);
+        if(!fromLoadFile)
+            emit docModified();
     }
 }
 
 QPixmap TextureList::getTexture(const QString &textureName)
 {
-    if(m_textures.find(textureName) != std::end(m_textures))  
+    if(m_textures.find(textureName) != std::end(m_textures))
         return m_textures[textureName].copy();
     return QPixmap{};
 }

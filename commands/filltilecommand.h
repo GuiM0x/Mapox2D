@@ -10,6 +10,7 @@ class FillTileCommand : public QUndoCommand
 public:
     FillTileCommand(MapScene *mapScene, QUndoCommand *parent = nullptr);
 
+public:
     void undo() override;
     void redo() override;
 

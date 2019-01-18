@@ -2,7 +2,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow{parent},
-      m_centralWidget{new MyCentralWidget{this}},
+      m_centralWidget{new QWidget{this}},
       m_mapView{new MapView{this}},
       m_mapScene{new MapScene{m_mapView}},
       m_textureList{new TextureList{this}},
@@ -19,9 +19,11 @@ MainWindow::MainWindow(QWidget *parent)
     createUndoView();
 
     m_addTextureButton->setText(tr("Add Texture"));
-    connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
 
+    connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
+    connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
+    connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
 }
 
 MainWindow::~MainWindow()
@@ -70,7 +72,6 @@ bool MainWindow::save()
 {
     if(m_currentFile.isEmpty())
         return saveAs();
-    qDebug() << "MainWindow::m_currentFile = " << m_currentFile;
     return saveFile(m_currentFile);
 }
 
@@ -89,8 +90,8 @@ bool MainWindow::saveAs()
 
 void MainWindow::docWasModified()
 {
-    // TO DO ?
-    qDebug() << "Slots docWasModified() triggered";
+    qDebug() << "Document modified";
+    m_documentModified = true;
 }
 
 void MainWindow::about()
@@ -105,7 +106,8 @@ void MainWindow::openTexture()
 {
     const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
                                                           tr("Images (*.png *.jpg *.bmp)"));
-    m_textureList->addTexture(fileName);
+    if(!fileName.isEmpty())
+        m_textureList->addTexture(fileName);
 }
 
 void MainWindow::mousePressEvent(QMouseEvent *event)
@@ -115,6 +117,8 @@ void MainWindow::mousePressEvent(QMouseEvent *event)
         if(m_mapScene->canFillTile(index)){
             QUndoCommand *fillCommand = new FillTileCommand{m_mapScene};
             m_undoStack->push(fillCommand);
+            /*connect(static_cast<FillTileCommand*>(fillCommand), &FillTileCommand::docModified,
+                    this, &MainWindow::docWasModified);*/
         }
     }
 }
@@ -195,6 +199,7 @@ void MainWindow::createMapScene()
 
 void MainWindow::createMapScene(std::map<QString, int>& values)
 {
+    m_documentModified = false; //??  GOOD HERE ??
     m_mapScene->createMatrix(values["tileWidth"],
                              values["tileHeight"],
                              values["totalRows"],
@@ -235,7 +240,7 @@ void MainWindow::createUndoView()
 
 bool MainWindow::maybeSave()
 {
-    if(!m_mapScene->isModified())
+    if(!m_documentModified)
         return true;
     const QMessageBox::StandardButton ret
             = QMessageBox::warning(this, tr("Application"),
@@ -254,13 +259,15 @@ bool MainWindow::maybeSave()
 }
 
 bool MainWindow::saveFile(const QString &fileName)
-{
+{ 
     DataSaver ds{m_mapScene, m_textureList};
     if(!ds.saveAllDatas(fileName))
         return false;
 
     setCurrentFile(fileName);
     statusBar()->showMessage("Map saved", 3000);
+    m_documentModified = false;
+    qDebug() << "MainWindow::saveFile(...) : m_documentModified = false";
 
     return true;
 }
@@ -280,8 +287,11 @@ void MainWindow::loadFile(const QString& fileName)
     dl.loadData(fileName);
 
     m_mapView->reset(m_mapScene->itemsBoundingRect());
-
     m_undoStack->clear();
+
     setCurrentFile(fileName);
     statusBar()->showMessage(tr("Map loaded"), 3000);
+
+    m_documentModified = false;
+    qDebug() << "MainWindow::loadFile(...) : m_documentModified = false";
 }

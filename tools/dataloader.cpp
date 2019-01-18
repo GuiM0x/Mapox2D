@@ -54,7 +54,7 @@ void DataLoader::createNewTextureList()
         indexEndTexturePath = m_datas.size();
 
     for(std::size_t i = indexBeginTexturePath; i < indexEndTexturePath; ++i){
-        m_textureList->addTexture(m_datas[i]);
+        m_textureList->addTexture(m_datas[i], true);
     }
 }
 

@@ -6,9 +6,8 @@
 #include "mapscene.h"
 #include "texturelist.h"
 #include "commands/filltilecommand.h"
-#include "mycentralwidget.h"
-#include "datasaver.h"
-#include "dataloader.h"
+#include "tools/datasaver.h"
+#include "tools/dataloader.h"
 
 #include <map>
 
@@ -64,7 +63,7 @@ private:
     void loadFile(const QString& fileName);
 
 private:
-    MyCentralWidget *m_centralWidget{nullptr};
+    QWidget        *m_centralWidget{nullptr};
     MapView        *m_mapView{nullptr};
     MapScene       *m_mapScene{nullptr};
     TextureList    *m_textureList{nullptr};
@@ -73,6 +72,7 @@ private:
     QUndoView      *m_undoView{nullptr};
     bool            m_mouseLeftPress{false};
     QString         m_currentFile{};
+    bool            m_documentModified{false};
 
 };
 

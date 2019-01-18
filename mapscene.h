@@ -45,6 +45,7 @@ signals:
     // Connected with slot &MapView::mouseMovingAndPressing
     // The slot create command for the undo/redo that fill a tile
     void mouseMoveAndPressLeft(MapScene* mapScene);
+    void docModified();
 
 public slots:
     // Connected with signal &QListWidget::itemClicked
