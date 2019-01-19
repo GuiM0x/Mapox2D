@@ -41,6 +41,7 @@ public:
     void fillTile(int index, const QString& textureName);
     void deleteTile(int index);
     QString currentTextureName() const;
+    QString currentTileName() const;
     std::vector<QString> fillAll(const QString& textureName);
     void fillAll(const std::vector<QString>& oldTilesTexturesName);
 
@@ -49,10 +50,14 @@ signals:
     // The slot create command for the undo/redo that fill a tile
     void mouseMoveAndPressLeft(MapScene* mapScene);
     void docModified();
+    void itemFocusChange();
 
 public slots:
     // Connected with signal &QListWidget::itemClicked
     void currentTextureSelectedInList(QListWidgetItem* item);
+
+private slots:
+    void itemFocusChanged();
 
 private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
@@ -63,10 +68,10 @@ private:
     void openLoadingDialog();
     void fillTile(int index);
     void clearAllContainers();
+    void createFocusRect(int tileWidth, int tileHeight);
 
 private:
     std::vector<QGraphicsRectItem*>   m_tiles{};
-    std::vector<QGraphicsPixmapItem*> m_tilesTextures{};
     std::vector<QString>              m_tilesTexturesNames{};
     QPointF                           m_mousePos{};
     QString                           m_mousePosStr{};
@@ -75,10 +80,11 @@ private:
     QSize                             m_tileSize{};
     int                               m_rows{};
     int                               m_cols{};
-    int                               m_currentIndex{};
+    int                               m_currentIndex{-1};
     bool                              m_mouseLeftPress{false};
     QString                           m_currentTextureFileName{};
     bool                              m_modified{false};
+    QGraphicsRectItem                *m_focusRect{nullptr};
 };
 
 #endif // MAPSCENE_H

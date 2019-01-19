@@ -4,7 +4,7 @@ DeleteTileCommand::DeleteTileCommand(MapScene* mapScene, QUndoCommand *parent)
     : QUndoCommand{parent}
 {
     m_mapScene = mapScene;
-    m_textureName = m_mapScene->currentTextureName();
+    m_textureName = m_mapScene->currentTileName();
     m_tileIndex = m_mapScene->currentTile();
     QString infos = "Texture [" + QString::number(m_tileIndex) +
                     "] texture [" + m_textureName + "] deleted";

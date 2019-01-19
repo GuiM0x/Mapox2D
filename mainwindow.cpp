@@ -105,10 +105,13 @@ void MainWindow::about()
 
 void MainWindow::openTexture()
 {
-    const QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "",
-                                                          tr("Images (*.png *.jpg *.bmp)"));
-    if(!fileName.isEmpty())
-        m_textureList->addTexture(fileName);
+    const QStringList fileNames = QFileDialog::getOpenFileNames(
+                                      this, tr("Select one or more files to open"), "",
+                                      tr("Images (*.png *.jpg *.bmp)"));
+    for(const auto& name : fileNames){
+        if(!name.isEmpty())
+            m_textureList->addTexture(name);
+    }
 }
 
 void MainWindow::fillAll()
@@ -209,7 +212,7 @@ void MainWindow::createMapView()
     m_mapView->setScene(m_mapScene);
     m_mapView->setMinimumWidth(640);
     m_mapView->setMinimumHeight(360);
-    m_mapView->setBackgroundBrush(QBrush{Qt::gray});
+    m_mapView->setBackgroundBrush(QBrush{QColor{100, 100, 100}});
     m_mapView->setCacheMode(QGraphicsView::CacheBackground);
     m_mapView->holdUndoStack(m_undoStack);
 }
