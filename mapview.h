@@ -12,6 +12,7 @@
 #include <QWheelEvent>
 #include <QStatusBar>
 #include <QMouseEvent>
+#include <QRubberBand>
 
 class MapView : public QGraphicsView
 {

@@ -32,6 +32,7 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
             QPen pen{};
             pen.setBrush(QBrush{QColor{135, 135, 135}});
             m_tiles.back()->setPen(pen);
+            m_tiles.back()->setFlag(QGraphicsItem::ItemIsSelectable);
             m_tilesTexturesNames.push_back("");
             if(progress.wasCanceled()){
                 clearAllContainers();

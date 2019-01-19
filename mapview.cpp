@@ -20,10 +20,12 @@ void MapView::reset(const QRectF& mapSceneBounding)
 
 void MapView::mouseMovingAndPressing(MapScene* mapScene)
 {
-    int index = mapScene->currentTile();
-    if(mapScene->canFillTile(index) && m_undoStack != nullptr){
-        QUndoCommand *fillCommand = new FillTileCommand{mapScene};
-        m_undoStack->push(fillCommand);
+    if(!m_keysState["Control"]){
+        int index = mapScene->currentTile();
+        if(mapScene->canFillTile(index) && m_undoStack != nullptr){
+            QUndoCommand *fillCommand = new FillTileCommand{mapScene};
+            m_undoStack->push(fillCommand);
+        }
     }
 }
 
@@ -79,5 +81,4 @@ void MapView::wheelEvent(QWheelEvent *event)
 void MapView::createKeys()
 {
     m_keysState["Control"] = false;
-    m_keysState["LeftButton"] = false;
 }
