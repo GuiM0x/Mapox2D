@@ -32,7 +32,6 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
             QPen pen{};
             pen.setBrush(QBrush{QColor{135, 135, 135}});
             m_tiles.back()->setPen(pen);
-            m_tiles.back()->setFlag(QGraphicsItem::ItemIsSelectable);
             m_tilesTexturesNames.push_back("");
             if(progress.wasCanceled()){
                 clearAllContainers();
@@ -188,7 +187,7 @@ void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
                     "), y(" + QString::number(mouseEvent->scenePos().y(), 'f', 0) + ")";
 
     const int oldIndex = m_currentIndex;
-    const int newIndex = indexRelativeToMouse(m_mousePos);
+    const int newIndex = indexRelativeToPos(m_mousePos);
     m_currentIndex = newIndex;
     if(newIndex != oldIndex){
         emit itemFocusChange();
@@ -216,7 +215,7 @@ void MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
 }
 
-int MapScene::indexRelativeToMouse(const QPointF& mousePos)
+int MapScene::indexRelativeToPos(const QPointF& mousePos)
 {
     if(mousePos.x() < 0 ||
             mousePos.y() < 0 ||
@@ -268,4 +267,5 @@ void MapScene::createFocusRect(int tileWidth, int tileHeight)
     m_focusRect = addRect(0, 0, tileWidth, tileHeight);
     m_focusRect->setBrush(QBrush{QColor{25, 110, 250, 30}});
     m_focusRect->setPen(QPen{Qt::NoPen});
+    m_focusRect->setFlag(QGraphicsItem::ItemIsSelectable, false);
 }

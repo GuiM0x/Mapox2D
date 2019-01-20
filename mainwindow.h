@@ -4,7 +4,6 @@
 #include "mapview.h"
 #include "mapscene.h"
 #include "texturelist.h"
-#include "commands/filltilecommand.h"
 #include "commands/fillallcommand.h"
 #include "dialogs/newmapdialog.h"
 #include "tools/datasaver.h"
@@ -25,6 +24,7 @@
 #include <QPixmap>
 #include <QUndoView>
 #include <QUndoStack>
+#include <QToolBar>
 
 class MainWindow : public QMainWindow
 {
@@ -37,6 +37,9 @@ public:
 protected:
     void closeEvent(QCloseEvent *event) override;
 
+signals:
+    void selectToolActived(bool actived);
+
 private slots:
     void newMap();
     void open();
@@ -47,9 +50,7 @@ private slots:
     void openTexture();
     void fillAll();
     void quit();
-
-private:
-    void mousePressEvent(QMouseEvent *event) override;
+    void selectToolChecked(bool checked = false);
 
 private:
     void createActions();

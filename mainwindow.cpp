@@ -25,6 +25,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
+    connect(this, &MainWindow::selectToolActived, m_mapView, &MapView::selectToolActived);
 }
 
 MainWindow::~MainWindow()
@@ -129,41 +130,46 @@ void MainWindow::quit()
         qApp->quit();
 }
 
-void MainWindow::mousePressEvent(QMouseEvent *event)
+void MainWindow::selectToolChecked(bool checked)
 {
-    if(event->button() == Qt::LeftButton){
-        int index = m_mapScene->currentTile();
-        if(m_mapScene->canFillTile(index)){
-            QUndoCommand *fillTileCommand = new FillTileCommand{m_mapScene};
-            m_undoStack->push(fillTileCommand);
-        }
-    }
+    if(checked)
+        emit selectToolActived(true);
+    else
+        emit selectToolActived(false);
 }
 
 void MainWindow::createActions()
 {
     ///////////////// File Menu
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
+    QToolBar *fileToolBar = addToolBar(tr("File"));
 
-    QAction *newAct = new QAction{tr("&New map"), this};
+    QIcon newIcon{":/icons/newFile.png"};
+    QAction *newAct = new QAction{newIcon, tr("&New map"), this};
     newAct->setShortcut(QKeySequence::New);
     newAct->setStatusTip(tr("Create a new map"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newMap);
     fileMenu->addAction(newAct);
+    fileToolBar->addAction(newAct);
 
     fileMenu->addSeparator();
 
-    QAction *openAct = new QAction{tr("&Open..."), this};
+    QIcon openIcon{":/icons/openFile.png"};
+    QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
     openAct->setStatusTip(tr("Open existing file"));
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
     fileMenu->addAction(openAct);
+    fileToolBar->addAction(openAct);
 
-    QAction *saveAct = new QAction{tr("&Save"), this};
+    QIcon saveIcon{":/icons/saveFile.png"};
+    QAction *saveAct = new QAction{saveIcon, tr("&Save"), this};
     saveAct->setShortcut(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save current file"));
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
     fileMenu->addAction(saveAct);
+    fileToolBar->addAction(saveAct);
+    fileToolBar->addSeparator();
 
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
     saveAsAct->setShortcut(QKeySequence::SaveAs);
@@ -181,22 +187,42 @@ void MainWindow::createActions()
 
     ///////////////// Edit Menu
     QMenu *editMenu = menuBar()->addMenu(tr("&Edit"));
+    QToolBar *editToolBar = addToolBar("Edit");
 
+    QIcon undoIcon{":/icons/undo.png"};
     QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
+    undoAct->setIcon(undoIcon);
     undoAct->setShortcut(QKeySequence::Undo);
     editMenu->addAction(undoAct);
+    editToolBar->addAction(undoAct);
 
+    QIcon redoIcon{":/icons/redo.png"};
     QAction *redoAct = m_undoStack->createRedoAction(this, tr("&Redo"));
+    redoAct->setIcon(redoIcon);
     redoAct->setShortcut(QKeySequence::Redo);
     editMenu->addAction(redoAct);
+    editToolBar->addAction(redoAct);
+    editToolBar->addSeparator();
 
     editMenu->addSeparator();
 
     QAction *fillAllAct = new QAction{tr("F&ill with current texture"), this};
     fillAllAct->setShortcut(QKeySequence{tr("Ctrl+,")});
-    saveAsAct->setStatusTip(tr("Fill the grid with selected texture in list"));
+    fillAllAct->setStatusTip(tr("Fill the grid with selected texture in list"));
     connect(fillAllAct, &QAction::triggered, this, &MainWindow::fillAll);
     editMenu->addAction(fillAllAct);
+
+    ///////////////// Tools Menu
+    QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
+    QToolBar *toolsToolBar = addToolBar("Tools");
+
+    QIcon selectIcon{":/icons/selection.png"};
+    QAction *selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
+    selectAct->setStatusTip(tr("Rectangular selection"));
+    selectAct->setCheckable(true);
+    connect(selectAct, &QAction::triggered, this, &MainWindow::selectToolChecked);
+    toolsMenu->addAction(selectAct);
+    toolsToolBar->addAction(selectAct);
 
     ///////////////// Help Menu
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
@@ -234,7 +260,7 @@ void MainWindow::createMapScene()
 
 void MainWindow::createMapScene(std::map<QString, int>& values)
 {
-    m_documentModified = false; //??  GOOD HERE ??
+    m_documentModified = false;
     m_mapScene->createMatrix(values["tileWidth"],
                              values["tileHeight"],
                              values["totalRows"],

@@ -15,8 +15,6 @@
 #include <QUndoStack>
 #include <QUndoCommand>
 #include <QProgressBar>
-#include <QProgressDialog>
-#include <QElapsedTimer>
 
 class MapScene : public QGraphicsScene
 {
@@ -63,7 +61,7 @@ private:
     void mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-    int indexRelativeToMouse(const QPointF& mousePos);
+    int indexRelativeToPos(const QPointF& pos);
     bool isTileTextureSameAsCurrentSelected(int index)const;
     void openLoadingDialog();
     void fillTile(int index);
