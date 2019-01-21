@@ -140,10 +140,11 @@ void MainWindow::selectToolChecked(bool checked)
 
 void MainWindow::createActions()
 {
-    ///////////////// File Menu
+    /////////////////////// FILE MENU
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
     QToolBar *fileToolBar = addToolBar(tr("File"));
 
+    // NEW FILE
     QIcon newIcon{":/icons/newFile.png"};
     QAction *newAct = new QAction{newIcon, tr("&New map"), this};
     newAct->setShortcut(QKeySequence::New);
@@ -154,6 +155,7 @@ void MainWindow::createActions()
 
     fileMenu->addSeparator();
 
+    // OPEN FILE
     QIcon openIcon{":/icons/openFile.png"};
     QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
@@ -162,6 +164,7 @@ void MainWindow::createActions()
     fileMenu->addAction(openAct);
     fileToolBar->addAction(openAct);
 
+    // SAVE FILE
     QIcon saveIcon{":/icons/saveFile.png"};
     QAction *saveAct = new QAction{saveIcon, tr("&Save"), this};
     saveAct->setShortcut(QKeySequence::Save);
@@ -171,6 +174,7 @@ void MainWindow::createActions()
     fileToolBar->addAction(saveAct);
     fileToolBar->addSeparator();
 
+    // SAVE AS
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
     saveAsAct->setShortcut(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save current file as..."));
@@ -179,16 +183,18 @@ void MainWindow::createActions()
 
     fileMenu->addSeparator();
 
+    // QUIT
     QAction *quitAct = new QAction{tr("&Quit"), this};
-    quitAct->setShortcut(QKeySequence{tr("Ctrl+Q")});
+    quitAct->setShortcut(QKeySequence{"Ctrl+Q"});
     quitAct->setStatusTip(tr("Shutdown Mapox2D"));
     connect(quitAct, &QAction::triggered, this, &MainWindow::quit);
     fileMenu->addAction(quitAct);
 
-    ///////////////// Edit Menu
+    /////////////////////// EDIT MENU
     QMenu *editMenu = menuBar()->addMenu(tr("&Edit"));
     QToolBar *editToolBar = addToolBar("Edit");
 
+    // UNDO
     QIcon undoIcon{":/icons/undo.png"};
     QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
     undoAct->setIcon(undoIcon);
@@ -196,6 +202,7 @@ void MainWindow::createActions()
     editMenu->addAction(undoAct);
     editToolBar->addAction(undoAct);
 
+    // REDO
     QIcon redoIcon{":/icons/redo.png"};
     QAction *redoAct = m_undoStack->createRedoAction(this, tr("&Redo"));
     redoAct->setIcon(redoIcon);
@@ -206,16 +213,34 @@ void MainWindow::createActions()
 
     editMenu->addSeparator();
 
+    // COPY
+    QAction *copyAct = new QAction{tr("Copy"), this};
+    copyAct->setShortcut(QKeySequence{"Ctrl+C"});
+    copyAct->setStatusTip(tr("Copy the current selection"));
+    connect(copyAct, &QAction::triggered, m_mapView, &MapView::copyTriggered);
+    editMenu->addAction(copyAct);
+
+    // PASTE
+    QAction *pasteAct = new QAction{tr("Paste"), this};
+    pasteAct->setShortcut(QKeySequence{"Ctrl+V"});
+    pasteAct->setStatusTip(tr("Paste from clipboard"));
+    connect(pasteAct, &QAction::triggered, m_mapView, &MapView::pasteTriggered);
+    editMenu->addAction(pasteAct);
+
+    editMenu->addSeparator();
+
+    // FILL
     QAction *fillAllAct = new QAction{tr("F&ill with current texture"), this};
     fillAllAct->setShortcut(QKeySequence{tr("Ctrl+,")});
     fillAllAct->setStatusTip(tr("Fill the grid with selected texture in list"));
     connect(fillAllAct, &QAction::triggered, this, &MainWindow::fillAll);
     editMenu->addAction(fillAllAct);
 
-    ///////////////// Tools Menu
+    /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
     QToolBar *toolsToolBar = addToolBar("Tools");
 
+    // SELECTION
     QIcon selectIcon{":/icons/selection.png"};
     QAction *selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
     selectAct->setStatusTip(tr("Rectangular selection"));
@@ -224,9 +249,10 @@ void MainWindow::createActions()
     toolsMenu->addAction(selectAct);
     toolsToolBar->addAction(selectAct);
 
-    ///////////////// Help Menu
+    /////////////////////// HELP MENU
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
 
+    // ABOUT
     QAction *aboutAct = new QAction{tr("&About"), this};
     aboutAct->setStatusTip(tr("About this software"));
     connect(aboutAct, &QAction::triggered, this, &MainWindow::about);

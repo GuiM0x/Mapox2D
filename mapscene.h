@@ -46,7 +46,7 @@ public:
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing
     // The slot create command for the undo/redo that fill a tile
-    void mouseMoveAndPressLeft(MapScene* mapScene);
+    void mouseMoveAndPressLeft();
     void docModified();
     void itemFocusChange();
 

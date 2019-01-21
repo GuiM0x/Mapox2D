@@ -14,6 +14,8 @@
 #include <QWheelEvent>
 #include <QStatusBar>
 #include <QMouseEvent>
+#include <QClipboard>
+#include <QMimeData>
 
 class MapView : public QGraphicsView
 {
@@ -32,9 +34,11 @@ public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
     // The signal indicate that a mouse Left button is pressed
     // and mouse moving. This slot create a command that fill a tile
-    void mouseMovingAndPressing(MapScene* mapScene);
+    void mouseMovingAndPressing();
     void rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint);
     void selectToolActived(bool actived);
+    void copyTriggered();
+    void pasteTriggered();
 
 private:
     void focusOutEvent(QFocusEvent *event) override;
@@ -53,8 +57,11 @@ private:
     std::map<std::string, bool> m_keysState{};
     double                      m_zoomFactor{1.0};
     QUndoStack                 *m_undoStack{nullptr};
-    ItemsSelected               m_originalSelectedItemsPen{};
+    ItemsSelected               m_previousItemsSelected{};
     bool                        m_selectionToolActived{false};
+
+private:
+    const char padding[7] = ""; // Only for padding "byte"
 };
 
 #endif // MAPVIEW_H

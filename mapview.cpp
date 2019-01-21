@@ -19,7 +19,7 @@ void MapView::reset(const QRectF& mapSceneBounding)
     resetTransform();
 }
 
-void MapView::mouseMovingAndPressing(MapScene* mapScene)
+void MapView::mouseMovingAndPressing()
 {
     if(!m_selectionToolActived && !m_keysState["Shift"]){
         fillTile();
@@ -30,23 +30,26 @@ void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPoint
 {
     QList<QGraphicsItem*> itemsSelected = items(rubberBandRect);
     const std::size_t selectedSize = static_cast<std::size_t>(itemsSelected.size());
-    const std::size_t oldSelectedSize = m_originalSelectedItemsPen.size();
+    const std::size_t oldSelectedSize = m_previousItemsSelected.size();
 
-    // Selection growing -> push new item in m_originalSelectedItems
+    // TODO : SEPARATE FUNCTION shrink() and grow()
+
+    // Selection growing -> push new item in m_previousItemsSelected
     // And set a brush to it
     if(selectedSize > oldSelectedSize){
         for(const auto& item : itemsSelected){
-            auto it = std::find_if(std::begin(m_originalSelectedItemsPen), std::end(m_originalSelectedItemsPen),
+            auto it = std::find_if(std::begin(m_previousItemsSelected), std::end(m_previousItemsSelected),
                                    [item](const std::tuple<QGraphicsRectItem*, QPen>& itemOriginal){
                                        return std::get<0>(itemOriginal) == item;
                                    });
-            if(it == std::end(m_originalSelectedItemsPen)){
-                m_originalSelectedItemsPen.push_back(std::make_tuple(
-                            qgraphicsitem_cast<QGraphicsRectItem*>(item),
-                            qgraphicsitem_cast<QGraphicsRectItem*>(item)->pen()));
-                QGraphicsRectItem *lastItem = std::get<0>(m_originalSelectedItemsPen.back());
-                lastItem->setOpacity(0.5);
-                lastItem->setPen(QPen{Qt::DotLine});
+            if(it == std::end(m_previousItemsSelected)){
+                QGraphicsRectItem *itemSelected = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+                // Avoid selection of focusRect - it's the only one with no pen
+                if(itemSelected->pen().style() != Qt::NoPen){
+                    m_previousItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
+                    itemSelected->setOpacity(0.5);
+                    itemSelected->setPen(QPen{Qt::DotLine});
+                }
             }
         }
     }
@@ -56,17 +59,29 @@ void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPoint
     if(selectedSize < oldSelectedSize){
         const std::size_t nbItemToDeselect = oldSelectedSize - selectedSize;
         for(std::size_t i = oldSelectedSize-1; i > i - nbItemToDeselect; --i){
-            std::get<0>(m_originalSelectedItemsPen[i])->setOpacity(1);
-            QPen pen = std::get<1>(m_originalSelectedItemsPen[i]);
-            std::get<0>(m_originalSelectedItemsPen[i])->setPen(pen);
-            m_originalSelectedItemsPen.pop_back();
+            std::get<0>(m_previousItemsSelected[i])->setOpacity(1);
+            QPen pen = std::get<1>(m_previousItemsSelected[i]);
+            std::get<0>(m_previousItemsSelected[i])->setPen(pen);
+            m_previousItemsSelected.pop_back();
         }
     }
 }
 
 void MapView::selectToolActived(bool actived)
 {
-    m_selectionToolActived = (actived) ? true : false;
+    m_selectionToolActived = actived;
+}
+
+void MapView::copyTriggered()
+{
+    qDebug() << "Ctrl+C triggered !";
+}
+
+void MapView::pasteTriggered()
+{
+    qDebug() << "Ctrl+V triggered !";
+
+    // TODO : Make a PasteCommand class
 }
 
 void MapView::focusOutEvent(QFocusEvent *event)
@@ -84,6 +99,10 @@ void MapView::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Shift){
         m_keysState["Shift"] = true;
         setDragMode(QGraphicsView::ScrollHandDrag);
+    }
+
+    if(event->key() == Qt::Key_Control){
+        m_keysState["Control"] = true;
     }
 
     // DELETE A TILE
@@ -104,6 +123,9 @@ void MapView::keyReleaseEvent(QKeyEvent *event)
         if(!m_keysState["LeftButton"]){
             setDragMode(QGraphicsView::NoDrag);
         }
+    }
+    if(event->key() == Qt::Key_Control){
+        m_keysState["Control"] = false;
     }
 }
 
@@ -150,11 +172,11 @@ void MapView::createKeys()
 
 void MapView::restoreOriginalSeletedItem()
 {
-    for(const auto& item : m_originalSelectedItemsPen){
+    for(const auto& item : m_previousItemsSelected){
         std::get<0>(item)->setOpacity(1);
         std::get<0>(item)->setPen(std::get<1>(item));
     }
-    m_originalSelectedItemsPen.clear();
+    m_previousItemsSelected.clear();
 }
 
 void MapView::fillTile()

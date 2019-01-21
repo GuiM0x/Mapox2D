@@ -198,7 +198,7 @@ void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
                                  QString::number(m_currentIndex) +
                                  "]");
     if(m_mouseLeftPress)
-        emit mouseMoveAndPressLeft(this);
+        emit mouseMoveAndPressLeft();
 }
 
 void MapScene::mousePressEvent(QGraphicsSceneMouseEvent *mouseEvent)
