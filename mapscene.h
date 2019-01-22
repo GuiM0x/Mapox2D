@@ -3,6 +3,7 @@
 
 #include "texturelist.h"
 #include "dialogs/loadingmapdialog.h"
+#include "tools/utilitytools.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -27,7 +28,6 @@ public:
     void holdStatusBar(QStatusBar* statusBar);
     void holdTextureList(TextureList* texturelist);
     void createMatrix(int tileWidth, int tileHeight, int rows, int cols);
-    int currentTile() const;
     bool canFillTile(int index) const;
     bool canDeleteTile(int index) const;
     bool isModified() const;
@@ -38,6 +38,7 @@ public:
     std::vector<QString>* allTilesName();
     void fillTile(int index, const QString& textureName);
     void deleteTile(int index);
+    int currentTile() const;
     QString currentTextureName() const;
     QString currentTileName() const;
     std::vector<QString> fillAll(const QString& textureName);
@@ -69,6 +70,7 @@ private:
     void createFocusRect(int tileWidth, int tileHeight);
 
 private:
+    // std::vector<std::tuple<QGraphicsRectItem*, QString>> ??
     std::vector<QGraphicsRectItem*>   m_tiles{};
     std::vector<QString>              m_tilesTexturesNames{};
     QPointF                           m_mousePos{};

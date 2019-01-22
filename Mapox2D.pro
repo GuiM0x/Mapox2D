@@ -50,7 +50,8 @@ HEADERS += \
     tools/datasaver.h \
     commands/fillallcommand.h \
     dialogs/loadingmapdialog.h \
-    dialogs/newmapdialog.h
+    dialogs/newmapdialog.h \
+    tools/utilitytools.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

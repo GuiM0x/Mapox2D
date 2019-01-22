@@ -22,6 +22,7 @@ class MapView : public QGraphicsView
     Q_OBJECT
 
     using ItemsSelected = std::vector<std::tuple<QGraphicsRectItem*, QPen>>;
+    using ItemsCopied   = std::vector<QGraphicsRectItem*>;
 
 public:
     MapView(QWidget *parent = nullptr);
@@ -52,12 +53,15 @@ private:
     void createKeys();
     void restoreOriginalSeletedItem();
     void fillTile();
+    void shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected);
+    void growToSelection(const QList<QGraphicsItem*>& itemsSelected);
 
 private:
     std::map<std::string, bool> m_keysState{};
     double                      m_zoomFactor{1.0};
     QUndoStack                 *m_undoStack{nullptr};
-    ItemsSelected               m_previousItemsSelected{};
+    ItemsSelected               m_originalItemsSelected{};
+    ItemsCopied                 m_tmpCopiedItem{};
     bool                        m_selectionToolActived{false};
 
 private:

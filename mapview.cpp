@@ -30,40 +30,14 @@ void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPoint
 {
     QList<QGraphicsItem*> itemsSelected = items(rubberBandRect);
     const std::size_t selectedSize = static_cast<std::size_t>(itemsSelected.size());
-    const std::size_t oldSelectedSize = m_previousItemsSelected.size();
+    const std::size_t oldSelectedSize = m_originalItemsSelected.size();
 
-    // TODO : SEPARATE FUNCTION shrink() and grow()
-
-    // Selection growing -> push new item in m_previousItemsSelected
-    // And set a brush to it
     if(selectedSize > oldSelectedSize){
-        for(const auto& item : itemsSelected){
-            auto it = std::find_if(std::begin(m_previousItemsSelected), std::end(m_previousItemsSelected),
-                                   [item](const std::tuple<QGraphicsRectItem*, QPen>& itemOriginal){
-                                       return std::get<0>(itemOriginal) == item;
-                                   });
-            if(it == std::end(m_previousItemsSelected)){
-                QGraphicsRectItem *itemSelected = qgraphicsitem_cast<QGraphicsRectItem*>(item);
-                // Avoid selection of focusRect - it's the only one with no pen
-                if(itemSelected->pen().style() != Qt::NoPen){
-                    m_previousItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
-                    itemSelected->setOpacity(0.5);
-                    itemSelected->setPen(QPen{Qt::DotLine});
-                }
-            }
-        }
+        growToSelection(itemsSelected);
     }
 
-    // Selection reducing -> compare size
-    // Depop difference
     if(selectedSize < oldSelectedSize){
-        const std::size_t nbItemToDeselect = oldSelectedSize - selectedSize;
-        for(std::size_t i = oldSelectedSize-1; i > i - nbItemToDeselect; --i){
-            std::get<0>(m_previousItemsSelected[i])->setOpacity(1);
-            QPen pen = std::get<1>(m_previousItemsSelected[i]);
-            std::get<0>(m_previousItemsSelected[i])->setPen(pen);
-            m_previousItemsSelected.pop_back();
-        }
+        shrinkToSelection(itemsSelected);
     }
 }
 
@@ -75,13 +49,34 @@ void MapView::selectToolActived(bool actived)
 void MapView::copyTriggered()
 {
     qDebug() << "Ctrl+C triggered !";
+
+    // Items Selected ?
+    if(!m_originalItemsSelected.empty()){
+        if(!m_tmpCopiedItem.empty()) m_tmpCopiedItem.clear();
+        for(const auto& item : m_originalItemsSelected)
+            m_tmpCopiedItem.push_back(std::get<0>(item));
+    }
 }
 
 void MapView::pasteTriggered()
 {
     qDebug() << "Ctrl+V triggered !";
 
-    // TODO : Make a PasteCommand class
+    if(!m_tmpCopiedItem.empty()){
+        for(const auto& item : m_tmpCopiedItem){
+            const QPointF pos = item->scenePos();
+            const auto mapScene = static_cast<MapScene*>(scene());
+            const QSize size{mapScene->tileWidth(), mapScene->tileHeight()};
+            qDebug() << "Index [" << UtilityTools::indexRelativeToPos(pos,
+                                                                      QSize{size.width(), size.height()},
+                                                                      mapScene->rows(),
+                                                                      mapScene->cols()) << "] | "
+                     << " | pos(" << pos.x() << ", " << pos.y() <<
+                     ") | size(" << size.width() << ", " << size.height() << ")";
+        }
+
+        // TO DO : Float selection
+    }
 }
 
 void MapView::focusOutEvent(QFocusEvent *event)
@@ -172,11 +167,11 @@ void MapView::createKeys()
 
 void MapView::restoreOriginalSeletedItem()
 {
-    for(const auto& item : m_previousItemsSelected){
+    for(const auto& item : m_originalItemsSelected){
         std::get<0>(item)->setOpacity(1);
         std::get<0>(item)->setPen(std::get<1>(item));
     }
-    m_previousItemsSelected.clear();
+    m_originalItemsSelected.clear();
 }
 
 void MapView::fillTile()
@@ -188,3 +183,38 @@ void MapView::fillTile()
         m_undoStack->push(fillTileCommand);
     }
 }
+
+void MapView::shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected)
+{
+    const std::size_t selectedSize = static_cast<std::size_t>(itemsSelected.size());
+    const std::size_t oldSelectedSize = m_originalItemsSelected.size();
+
+    const std::size_t nbItemToDeselect = oldSelectedSize - selectedSize;
+    for(std::size_t i = oldSelectedSize-1; i > i - nbItemToDeselect; --i){
+        std::get<0>(m_originalItemsSelected[i])->setOpacity(1);
+        QPen pen = std::get<1>(m_originalItemsSelected[i]);
+        std::get<0>(m_originalItemsSelected[i])->setPen(pen);
+        m_originalItemsSelected.pop_back();
+    }
+}
+
+void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
+{
+    for(const auto& item : itemsSelected){
+        auto it = std::find_if(std::begin(m_originalItemsSelected), std::end(m_originalItemsSelected),
+                               [item](const std::tuple<QGraphicsRectItem*, QPen>& itemOriginal){
+                                   return std::get<0>(itemOriginal) == item;
+                               });
+        if(it == std::end(m_originalItemsSelected)){
+            QGraphicsRectItem *itemSelected = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+            // Avoid selection of focusRect - it's the only one with no pen
+            if(itemSelected->pen().style() != Qt::NoPen){
+                m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
+                itemSelected->setOpacity(0.5);
+                itemSelected->setPen(QPen{Qt::DotLine});
+            }
+        }
+    }
+}
+
+

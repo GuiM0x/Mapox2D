@@ -28,10 +28,18 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
     LoadingMapDialog progress{totalTiles, "Creating tiles...", "Cancel", 0, 100};
     for(int i = 0; i < rows; ++i){
         for(int j = 0; j < cols; ++j){
-            m_tiles.push_back(addRect(j*tileWidth, i*tileHeight, tileWidth, tileHeight));
+            // Warning : When add an item in scene,
+            //           always init with pos(0, 0) and
+            //           then setPos(x, y) on item.
+            //           Because in function add...(), the pos
+            //           represents the draw coordinate, not the items's pos.
+            //           setPos(x, y) set position for drawing and item coordinates
+            auto *rect = addRect(0, 0, tileWidth, tileHeight);
             QPen pen{};
             pen.setBrush(QBrush{QColor{135, 135, 135}});
-            m_tiles.back()->setPen(pen);
+            rect->setPen(pen);
+            rect->setPos(j*tileWidth, i*tileHeight);
+            m_tiles.push_back(rect);
             m_tilesTexturesNames.push_back("");
             if(progress.wasCanceled()){
                 clearAllContainers();
@@ -42,11 +50,6 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
     }
     progress.setValue(100);
     createFocusRect(tileWidth, tileHeight);
-}
-
-int MapScene::currentTile() const
-{
-    return m_currentIndex;
 }
 
 bool MapScene::canFillTile(int index) const
@@ -120,6 +123,11 @@ void MapScene::deleteTile(int index)
         m_tilesTexturesNames[id] = "";
         m_tiles[id]->setBrush(QBrush{QPixmap{}});
     }
+}
+
+int MapScene::currentTile() const
+{
+    return m_currentIndex;
 }
 
 QString MapScene::currentTextureName() const
@@ -215,17 +223,17 @@ void MapScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *mouseEvent)
     }
 }
 
-int MapScene::indexRelativeToPos(const QPointF& mousePos)
+int MapScene::indexRelativeToPos(const QPointF& pos)
 {
-    if(mousePos.x() < 0 ||
-            mousePos.y() < 0 ||
-            mousePos.x() >= m_cols * m_tileSize.width() ||
-            mousePos.y() >= m_rows * m_tileSize.height()){
+    if(pos.x() < 0 ||
+            pos.y() < 0 ||
+            pos.x() >= m_cols * m_tileSize.width() ||
+            pos.y() >= m_rows * m_tileSize.height()){
         m_currentIndex = -1;
     }
     else {
-        int i = static_cast<int>(mousePos.y() / m_tileSize.height());
-        int j = static_cast<int>(mousePos.x() / m_tileSize.width());
+        int i = static_cast<int>(pos.y() / m_tileSize.height());
+        int j = static_cast<int>(pos.x() / m_tileSize.width());
         m_currentIndex = (i * m_cols) + j;
     }
 
