@@ -36,7 +36,8 @@ SOURCES += \
     tools/datasaver.cpp \
     commands/fillallcommand.cpp \
     dialogs/loadingmapdialog.cpp \
-    dialogs/newmapdialog.cpp
+    dialogs/newmapdialog.cpp \
+    tileitem.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -51,7 +52,8 @@ HEADERS += \
     commands/fillallcommand.h \
     dialogs/loadingmapdialog.h \
     dialogs/newmapdialog.h \
-    tools/utilitytools.h
+    tools/utilitytools.h \
+    tileitem.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

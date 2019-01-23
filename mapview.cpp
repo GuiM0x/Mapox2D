@@ -48,19 +48,21 @@ void MapView::selectToolActived(bool actived)
 
 void MapView::copyTriggered()
 {
-    qDebug() << "Ctrl+C triggered !";
+    qDebug() << "MapView::copyTriggered()";
 
     // Items Selected ?
     if(!m_originalItemsSelected.empty()){
         if(!m_tmpCopiedItem.empty()) m_tmpCopiedItem.clear();
         for(const auto& item : m_originalItemsSelected)
             m_tmpCopiedItem.push_back(std::get<0>(item));
+
+        // Item + texture name
     }
 }
 
 void MapView::pasteTriggered()
 {
-    qDebug() << "Ctrl+V triggered !";
+    qDebug() << "MapView::pasteTriggered()";
 
     if(!m_tmpCopiedItem.empty()){
         for(const auto& item : m_tmpCopiedItem){
@@ -75,7 +77,16 @@ void MapView::pasteTriggered()
                      ") | size(" << size.width() << ", " << size.height() << ")";
         }
 
-        // TO DO : Float selection
+        // TO DO in pasteTriggered() :
+        //     - Float selection layer
+        //     - (don't forget textures names)
+        //     - Insert *items (or item copy ?) in this new layer
+        //     - Active (FLOAT SELECTION LAYER MOD)
+        //
+        // THEN :
+        //     - Drag layer (snap to grid)
+        //     - Anchor layer
+        //     - Anchor action (pasteTileCommand{});
     }
 }
 
