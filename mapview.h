@@ -2,6 +2,7 @@
 #define MAPVIEW_H
 
 #include "mapscene.h"
+#include "tileitem.h"
 #include "commands/filltilecommand.h"
 #include "commands/deletetilecommand.h"
 
@@ -14,15 +15,14 @@
 #include <QWheelEvent>
 #include <QStatusBar>
 #include <QMouseEvent>
-#include <QClipboard>
-#include <QMimeData>
+#include <QList>
 
 class MapView : public QGraphicsView
 {
     Q_OBJECT
 
-    using ItemsSelected = std::vector<std::tuple<QGraphicsRectItem*, QPen>>;
-    using ItemsCopied   = std::vector<QGraphicsRectItem*>;
+    using ItemsSelected = std::vector<std::tuple<TileItem*, QPen>>;
+    using ItemsCopied   = QList<TileItem*>;
 
 public:
     MapView(QWidget *parent = nullptr);
@@ -55,6 +55,7 @@ private:
     void fillTile();
     void shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected);
     void growToSelection(const QList<QGraphicsItem*>& itemsSelected);
+    TileItem* copyTile(TileItem *itemToCopy);
 
 private:
     std::map<std::string, bool> m_keysState{};

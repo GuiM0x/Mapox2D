@@ -53,10 +53,10 @@ void MapView::copyTriggered()
     // Items Selected ?
     if(!m_originalItemsSelected.empty()){
         if(!m_tmpCopiedItem.empty()) m_tmpCopiedItem.clear();
-        for(const auto& item : m_originalItemsSelected)
-            m_tmpCopiedItem.push_back(std::get<0>(item));
-
-        // Item + texture name
+        // Append to copied items List
+        for(const auto& item : m_originalItemsSelected){
+            m_tmpCopiedItem.append(copyTile(std::get<0>(item)));
+        }
     }
 }
 
@@ -65,28 +65,54 @@ void MapView::pasteTriggered()
     qDebug() << "MapView::pasteTriggered()";
 
     if(!m_tmpCopiedItem.empty()){
-        for(const auto& item : m_tmpCopiedItem){
-            const QPointF pos = item->scenePos();
-            const auto mapScene = static_cast<MapScene*>(scene());
+        const auto mapScene = static_cast<MapScene*>(scene());
+        // TO DO : Sort function ? Index in TileItem ?
+        std::sort(std::begin(m_tmpCopiedItem), std::end(m_tmpCopiedItem),
+                  [mapScene](TileItem *item1, TileItem *item2){
+                        const QPointF pos1 = item1->scenePos();
+                        const QSize size1{mapScene->tileWidth(), mapScene->tileHeight()};
+                        int index1 = UtilityTools::indexRelativeToPos(pos1,
+                                                                     size1,
+                                                                     mapScene->rows(),
+                                                                     mapScene->cols());
+                        const QPointF pos2 = item2->scenePos();
+                        const QSize size2{mapScene->tileWidth(), mapScene->tileHeight()};
+                        int index2 = UtilityTools::indexRelativeToPos(pos2,
+                                                                     size2,
+                                                                     mapScene->rows(),
+                                                                     mapScene->cols());
+                        return index1 < index2;
+                  });
+        // Add Items to Scene
+        for(const auto& tileCopied : m_tmpCopiedItem){
+            // Only for DEBUG
+            const QPointF pos = tileCopied->scenePos();
             const QSize size{mapScene->tileWidth(), mapScene->tileHeight()};
-            qDebug() << "Index [" << UtilityTools::indexRelativeToPos(pos,
-                                                                      QSize{size.width(), size.height()},
-                                                                      mapScene->rows(),
-                                                                      mapScene->cols()) << "] | "
+            int index = UtilityTools::indexRelativeToPos(pos,
+                                                         size,
+                                                         mapScene->rows(),
+                                                         mapScene->cols());
+            // --> Tile Copied
+            qDebug() << "Index [" << index << "] | "
                      << " | pos(" << pos.x() << ", " << pos.y() <<
-                     ") | size(" << size.width() << ", " << size.height() << ")";
-        }
+                     ") | size(" << size.width() << ", " << size.height() <<
+                        ") | name (" << tileCopied->name() << ")";
 
-        // TO DO in pasteTriggered() :
-        //     - Float selection layer
-        //     - (don't forget textures names)
-        //     - Insert *items (or item copy ?) in this new layer
-        //     - Active (FLOAT SELECTION LAYER MOD)
-        //
-        // THEN :
-        //     - Drag layer (snap to grid)
-        //     - Anchor layer
-        //     - Anchor action (pasteTileCommand{});
+            mapScene->addItem(tileCopied);
+            tileCopied->setBrush(QBrush{QColor{150, 255, 50}}); //////// Only for testing
+
+            // TO DO in pasteTriggered() :
+            //     - Float selection layer
+            //     - Active (FLOAT SELECTION LAYER MOD)
+            //
+            // THEN :
+            //     - Drag layer (snap to grid)
+            //     - Anchor layer -> action (pasteTileCommand{});
+            //
+            // THEN IF ANCHOR :
+            //     - FillTile with copied items
+            //     - Remove items copied in scene
+        }
     }
 }
 
@@ -213,11 +239,11 @@ void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
 {
     for(const auto& item : itemsSelected){
         auto it = std::find_if(std::begin(m_originalItemsSelected), std::end(m_originalItemsSelected),
-                               [item](const std::tuple<QGraphicsRectItem*, QPen>& itemOriginal){
+                               [item](const std::tuple<TileItem*, QPen>& itemOriginal){
                                    return std::get<0>(itemOriginal) == item;
                                });
         if(it == std::end(m_originalItemsSelected)){
-            QGraphicsRectItem *itemSelected = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+            TileItem *itemSelected = qgraphicsitem_cast<TileItem*>(item);
             // Avoid selection of focusRect - it's the only one with no pen
             if(itemSelected->pen().style() != Qt::NoPen){
                 m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
@@ -228,4 +254,18 @@ void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
     }
 }
 
+TileItem* MapView::copyTile(TileItem *itemToCopy)
+{
+    TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, QSizeF{itemToCopy->boundingRect().size()}}};
+    copiedItem->setPos(itemToCopy->scenePos());
+    copiedItem->setPen(itemToCopy->pen());
+    copiedItem->setBrush(itemToCopy->brush());
+    copiedItem->setName(itemToCopy->name());
+
+    /*qDebug() << "MapView::copyTile - Tile infos :\n"
+             << "[" << copiedItem->name() << "] "
+             << "(" << copiedItem->scenePos().x() << ", " << copiedItem->scenePos().y() <<")";*/
+
+    return copiedItem;
+}
 

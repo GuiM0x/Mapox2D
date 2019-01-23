@@ -17,3 +17,13 @@ TileItem::TileItem(qreal x, qreal y, qreal width, qreal height, QGraphicsItem *p
 {
 
 }
+
+QString TileItem::name() const
+{
+    return m_name;
+}
+
+void TileItem::setName(const QString& name)
+{
+    m_name = name;
+}

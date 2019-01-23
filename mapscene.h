@@ -2,6 +2,7 @@
 #define MAPSCENE_H
 
 #include "texturelist.h"
+#include "tileitem.h"
 #include "dialogs/loadingmapdialog.h"
 #include "tools/utilitytools.h"
 
@@ -70,8 +71,8 @@ private:
     void createFocusRect(int tileWidth, int tileHeight);
 
 private:
-    // std::vector<std::tuple<QGraphicsRectItem*, QString>> ??
-    std::vector<QGraphicsRectItem*>   m_tiles{};
+    // std::vector<std::tuple<TileItem*, QString>> ??
+    std::vector<TileItem*>            m_tiles{};
     std::vector<QString>              m_tilesTexturesNames{};
     QPointF                           m_mousePos{};
     QString                           m_mousePosStr{};

@@ -34,13 +34,20 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
             //           Because in function add...(), the pos
             //           represents the draw coordinate, not the items's pos.
             //           setPos(x, y) set position for drawing and item coordinates
-            auto *rect = addRect(0, 0, tileWidth, tileHeight);
+            qreal width = tileWidth;
+            qreal height = tileHeight;
+            const QRectF boundings{QPointF{0, 0}, QSizeF{width, height}};
+            TileItem *tile = new TileItem{boundings};
             QPen pen{};
             pen.setBrush(QBrush{QColor{135, 135, 135}});
-            rect->setPen(pen);
-            rect->setPos(j*tileWidth, i*tileHeight);
-            m_tiles.push_back(rect);
+            tile->setPen(pen);
+            qreal x = j*tileWidth;
+            qreal y = i*tileHeight;
+            tile->setPos(x, y);
+            tile->setName("");
             m_tilesTexturesNames.push_back("");
+            m_tiles.push_back(tile);
+            addItem(tile);
             if(progress.wasCanceled()){
                 clearAllContainers();
                 break;
@@ -66,7 +73,7 @@ bool MapScene::canFillTile(int index) const
 bool MapScene::canDeleteTile(int index) const
 {
     if(index != -1 &&
-            m_tilesTexturesNames[static_cast<std::size_t>(index)] != ""){
+            m_tiles[static_cast<std::size_t>(index)]->name() != ""){
         return true;
     }
     return false;
@@ -110,6 +117,7 @@ void MapScene::fillTile(int index, const QString& textureName)
         if(textureName != m_tilesTexturesNames[id]){
             QPixmap scaled = m_textureList->getTexture(textureName).scaled(m_tileSize.width(), m_tileSize.height());
             m_tiles[id]->setBrush(QBrush{scaled});
+            m_tiles[id]->setName(textureName);
             m_tilesTexturesNames[id] = textureName;
         }
     }
@@ -120,8 +128,9 @@ void MapScene::deleteTile(int index)
 {
     if(index != -1){
         std::size_t id = static_cast<std::size_t>(index);
-        m_tilesTexturesNames[id] = "";
         m_tiles[id]->setBrush(QBrush{QPixmap{}});
+        m_tiles[id]->setName("");
+        m_tilesTexturesNames[id] = "";
     }
 }
 
@@ -138,7 +147,7 @@ QString MapScene::currentTextureName() const
 QString MapScene::currentTileName() const
 {
     if(m_currentIndex != -1)
-        return m_tilesTexturesNames[static_cast<std::size_t>(m_currentIndex)];
+        return m_tiles[static_cast<std::size_t>(m_currentIndex)]->name();
     return "";
 }
 
@@ -166,6 +175,7 @@ void MapScene::fillAll(const std::vector<QString>& oldTilesTexturesNames)
             fillTile(static_cast<int>(i), oldTilesTexturesNames[i]);
         } else {
             m_tiles[i]->setBrush(QBrush{QPixmap{}});
+            m_tiles[i]->setName("");
             m_tilesTexturesNames[i] = "";
         }
         progress.updateBar(static_cast<int>(i));
@@ -182,8 +192,8 @@ void MapScene::itemFocusChanged()
 {
     if(m_focusRect != nullptr && m_currentIndex != -1){
         if(m_tiles[static_cast<std::size_t>(m_currentIndex)] != nullptr){
-            QRectF bounding = m_tiles[static_cast<std::size_t>(m_currentIndex)]->boundingRect();
-            m_focusRect->setRect(bounding);
+            QPointF pos = m_tiles[static_cast<std::size_t>(m_currentIndex)]->pos();
+            m_focusRect->setPos(pos);
         }
     }
 }
@@ -201,10 +211,15 @@ void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
         emit itemFocusChange();
     }
 
-    if(m_statusBar != nullptr)
+    if(m_statusBar != nullptr){
+        QString tileName =
+                (m_currentIndex != -1) ? m_tiles[static_cast<std::size_t>(m_currentIndex)]->name() : "No Tile";
+        if(tileName.isEmpty()) tileName = "Default";
         m_statusBar->showMessage(m_mousePosStr + " - index[" +
                                  QString::number(m_currentIndex) +
-                                 "]");
+                                 "] = " + tileName);
+    }
+
     if(m_mouseLeftPress)
         emit mouseMoveAndPressLeft();
 }
@@ -258,6 +273,7 @@ void MapScene::fillTile(int index)
         std::size_t id = static_cast<std::size_t>(index);
         QPixmap scaled = m_textureList->getTexture(m_currentTextureFileName).scaled(m_tileSize.width(), m_tileSize.height());
         m_tiles[id]->setBrush(QBrush{scaled});
+        m_tiles[id]->setName(m_currentTextureFileName);
         m_tilesTexturesNames[id] = m_currentTextureFileName;
     }
 }
@@ -272,7 +288,12 @@ void MapScene::clearAllContainers()
 
 void MapScene::createFocusRect(int tileWidth, int tileHeight)
 {
-    m_focusRect = addRect(0, 0, tileWidth, tileHeight);
+    qreal width = tileWidth;
+    qreal height = tileHeight;
+    const QRectF boundings{QPointF{0, 0}, QSizeF{width, height}};
+    if(m_focusRect == nullptr)
+        m_focusRect = new TileItem{boundings};
+    addItem(m_focusRect);
     m_focusRect->setBrush(QBrush{QColor{25, 110, 250, 30}});
     m_focusRect->setPen(QPen{Qt::NoPen});
     m_focusRect->setFlag(QGraphicsItem::ItemIsSelectable, false);
