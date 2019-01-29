@@ -45,6 +45,7 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
             qreal y = i*tileHeight;
             tile->setPos(x, y);
             tile->setName("");
+            tile->setIndex(i*cols+j);
             m_tilesTexturesNames.push_back("");
             m_tiles.push_back(tile);
             addItem(tile);
@@ -183,6 +184,36 @@ void MapScene::fillAll(const std::vector<QString>& oldTilesTexturesNames)
     progress.setValue(100);
 }
 
+QPointF MapScene::mousePosition() const
+{
+    return m_mousePos;
+}
+
+QPointF MapScene::mouseMoveVector() const
+{
+    const QPointF moveVector{m_mousePos - m_mouseLastPos};
+    return moveVector;
+}
+
+QPointF MapScene::focusRectPos() const
+{
+    const QPointF pos = (m_focusRect == nullptr) ? QPointF{} : m_focusRect->scenePos();
+    return pos;
+}
+
+TileItem* MapScene::itemByIndex(int index)
+{
+    if(index < 0 || index >= static_cast<int>(m_tiles.size()))
+        throw(std::logic_error{"MapScene::itemByIndex - index Out of range"});
+    return m_tiles[static_cast<std::size_t>(index)];
+}
+
+QGraphicsRectItem* MapScene::focusRect()
+{
+    assert(m_focusRect != nullptr && "MapScene::focusRect - m_focusRect cannot be null");
+    return m_focusRect;
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->text();
@@ -200,6 +231,7 @@ void MapScene::itemFocusChanged()
 
 void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 {
+    m_mouseLastPos = m_mousePos;
     m_mousePos = mouseEvent->scenePos();
     m_mousePosStr = "x(" + QString::number(mouseEvent->scenePos().x(), 'f', 0) +
                     "), y(" + QString::number(mouseEvent->scenePos().y(), 'f', 0) + ")";

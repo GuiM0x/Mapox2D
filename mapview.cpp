@@ -17,12 +17,19 @@ void MapView::reset(const QRectF& mapSceneBounding)
 {
     setSceneRect(mapSceneBounding);
     resetTransform();
+    m_originalItemsSelected.clear();
+    m_tmpCopiedItem.clear();
 }
 
 void MapView::mouseMovingAndPressing()
 {
-    if(!m_selectionToolActived && !m_keysState["Shift"]){
+    if(m_brushToolActived && !m_keysState["Shift"]){
         fillTile();
+    }
+
+    if(canDragCopiedSelection()){
+        adjustFocusRectCopiedSelectionDragging();
+        moveCopiedSelection();
     }
 }
 
@@ -44,12 +51,56 @@ void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPoint
 void MapView::selectToolActived(bool actived)
 {
     m_selectionToolActived = actived;
+    if(m_selectionToolActived){
+        m_moveSelectionToolActived = false;
+        m_brushToolActived = false;
+        QCursor cursor{Qt::SizeFDiagCursor};
+        setCursor(cursor);
+        emit uncheckMoveSelectionTool();
+        emit uncheckBrushTileTool();
+        emit checkSelectTool();
+    } else {
+        QCursor cursor{Qt::ArrowCursor};
+        setCursor(cursor);
+    }
+}
+
+void MapView::moveSelectionToolActived(bool actived)
+{
+    m_moveSelectionToolActived = actived;
+    if(m_moveSelectionToolActived){
+        m_selectionToolActived = false;
+        m_brushToolActived = false;
+        QCursor cursor{Qt::SizeAllCursor};
+        setCursor(cursor);
+        emit uncheckSelectTool();
+        emit uncheckBrushTileTool();
+        emit checkMoveSelectionTool();
+    } else {
+        QCursor cursor{Qt::ArrowCursor};
+        setCursor(cursor);
+    }
+}
+
+void MapView::brushTileToolActived(bool actived)
+{
+    m_brushToolActived = actived;
+    if(m_brushToolActived){
+        m_selectionToolActived = false;
+        m_moveSelectionToolActived = false;
+        QCursor cursor{QPixmap{":/icons/brushTileCursor"}};
+        setCursor(cursor);
+        emit uncheckSelectTool();
+        emit uncheckMoveSelectionTool();
+        emit checkBrushTileTool();
+    } else {
+        QCursor cursor{Qt::ArrowCursor};
+        setCursor(cursor);
+    }
 }
 
 void MapView::copyTriggered()
 {
-    qDebug() << "MapView::copyTriggered()";
-
     // Items Selected ?
     if(!m_originalItemsSelected.empty()){
         if(!m_tmpCopiedItem.empty()) m_tmpCopiedItem.clear();
@@ -57,62 +108,24 @@ void MapView::copyTriggered()
         for(const auto& item : m_originalItemsSelected){
             m_tmpCopiedItem.append(copyTile(std::get<0>(item)));
         }
+        // Sort by original index
+        std::sort(std::begin(m_tmpCopiedItem), std::end(m_tmpCopiedItem),
+                  [](TileItem *item1, TileItem *item2){
+                        return item1->index() < item2->index();
+                  });
+        // Restore selected items
+        restoreOriginalSeletedItem();
     }
 }
 
 void MapView::pasteTriggered()
 {
-    qDebug() << "MapView::pasteTriggered()";
-
+    // TO DO : AVOID DOUBLE CTRL + V ?
     if(!m_tmpCopiedItem.empty()){
-        const auto mapScene = static_cast<MapScene*>(scene());
-        // TO DO : Sort function ? Index in TileItem ?
-        std::sort(std::begin(m_tmpCopiedItem), std::end(m_tmpCopiedItem),
-                  [mapScene](TileItem *item1, TileItem *item2){
-                        const QPointF pos1 = item1->scenePos();
-                        const QSize size1{mapScene->tileWidth(), mapScene->tileHeight()};
-                        int index1 = UtilityTools::indexRelativeToPos(pos1,
-                                                                     size1,
-                                                                     mapScene->rows(),
-                                                                     mapScene->cols());
-                        const QPointF pos2 = item2->scenePos();
-                        const QSize size2{mapScene->tileWidth(), mapScene->tileHeight()};
-                        int index2 = UtilityTools::indexRelativeToPos(pos2,
-                                                                     size2,
-                                                                     mapScene->rows(),
-                                                                     mapScene->cols());
-                        return index1 < index2;
-                  });
-        // Add Items to Scene
-        for(const auto& tileCopied : m_tmpCopiedItem){
-            // Only for DEBUG
-            const QPointF pos = tileCopied->scenePos();
-            const QSize size{mapScene->tileWidth(), mapScene->tileHeight()};
-            int index = UtilityTools::indexRelativeToPos(pos,
-                                                         size,
-                                                         mapScene->rows(),
-                                                         mapScene->cols());
-            // --> Tile Copied
-            qDebug() << "Index [" << index << "] | "
-                     << " | pos(" << pos.x() << ", " << pos.y() <<
-                     ") | size(" << size.width() << ", " << size.height() <<
-                        ") | name (" << tileCopied->name() << ")";
-
-            mapScene->addItem(tileCopied);
-            tileCopied->setBrush(QBrush{QColor{150, 255, 50}}); //////// Only for testing
-
-            // TO DO in pasteTriggered() :
-            //     - Float selection layer
-            //     - Active (FLOAT SELECTION LAYER MOD)
-            //
-            // THEN :
-            //     - Drag layer (snap to grid)
-            //     - Anchor layer -> action (pasteTileCommand{});
-            //
-            // THEN IF ANCHOR :
-            //     - FillTile with copied items
-            //     - Remove items copied in scene
-        }
+        moveSelectionToolActived(true);
+        auto mapScene = static_cast<MapScene*>(scene());
+        QUndoCommand *pasteCommand = new PasteCommand{mapScene, &m_tmpCopiedItem};
+        m_undoStack->push(pasteCommand);
     }
 }
 
@@ -176,14 +189,17 @@ void MapView::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         m_keysState["LeftButton"] = true;
-        if(m_selectionToolActived)
-            setDragMode(QGraphicsView::RubberBandDrag);
-        if(!m_selectionToolActived && !m_keysState["Shift"]){
-            setDragMode(QGraphicsView::NoDrag);
-            fillTile();
+        if(!m_keysState["Shift"]){
+            if(m_selectionToolActived)
+                setDragMode(QGraphicsView::RubberBandDrag);
+            if(!m_selectionToolActived)
+                setDragMode(QGraphicsView::NoDrag);
+            if(m_brushToolActived)
+                fillTile();
         }
-        restoreOriginalSeletedItem();
+        restoreOriginalSeletedItem(); 
     }
+
     QGraphicsView::mousePressEvent(event);
 }
 
@@ -191,6 +207,9 @@ void MapView::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         m_keysState["LeftButton"] = false;
+        if(canDragCopiedSelection()){
+            adjustCopiedSelectionPosEndDrag();
+        }
     }
     QGraphicsView::mouseReleaseEvent(event);
 }
@@ -256,16 +275,109 @@ void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
 
 TileItem* MapView::copyTile(TileItem *itemToCopy)
 {
-    TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, QSizeF{itemToCopy->boundingRect().size()}}};
+    const MapScene *mapScene = static_cast<MapScene*>(scene());
+    const QSizeF sizeTile{static_cast<qreal>(mapScene->tileWidth()),
+                          static_cast<qreal>(mapScene->tileHeight())};
+    TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, sizeTile}};
     copiedItem->setPos(itemToCopy->scenePos());
     copiedItem->setPen(itemToCopy->pen());
     copiedItem->setBrush(itemToCopy->brush());
     copiedItem->setName(itemToCopy->name());
-
-    /*qDebug() << "MapView::copyTile - Tile infos :\n"
-             << "[" << copiedItem->name() << "] "
-             << "(" << copiedItem->scenePos().x() << ", " << copiedItem->scenePos().y() <<")";*/
-
+    copiedItem->setIndex(itemToCopy->index());
     return copiedItem;
 }
 
+QRectF MapView::copiedSelectionBoundingRect() const
+{
+    assert(!m_tmpCopiedItem.empty()
+           && "MapView::copiedSelectionBoundingRect - m_tmpCopiedItem cannot be empty");
+    const QPointF startPoint{m_tmpCopiedItem[0]->scenePos()};
+    auto *lastItem = m_tmpCopiedItem.back();
+    const QPointF lastItemPos = lastItem->scenePos();
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    const QSizeF itemSize{static_cast<qreal>(mapScene->tileWidth()),
+                          static_cast<qreal>(mapScene->tileHeight())};
+    const QPointF endPoint{lastItemPos.x() + itemSize.width(),
+                          lastItemPos.y() + itemSize.height()};
+    const QRectF boundingSelection{startPoint, QSizeF{endPoint.x() - startPoint.x(),
+                                                      endPoint.y()- startPoint.y()}};
+    return boundingSelection;
+}
+
+bool MapView::canDragCopiedSelection() const
+{
+    if(m_moveSelectionToolActived && !m_tmpCopiedItem.empty()){
+        const auto mapScene = static_cast<MapScene*>(scene());
+        const QRectF sceneRect = QRectF{QPointF{0, 0}, QSizeF{mapScene->sceneRect().size()}};
+        const QPointF mousePos = mapScene->mousePosition();
+        const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
+        if(sceneRect.contains(mousePos) && copiedSelectionRect.contains(mousePos)){
+            return true;
+        }
+    }
+    return false;
+}
+
+void MapView::adjustFocusRectCopiedSelectionDragging()
+{
+    assert(!m_tmpCopiedItem.empty() && "m_tmpCopiedItem cannot be empty");
+    const auto mapScene = static_cast<MapScene*>(scene());
+    const QPointF firstItemPos = m_tmpCopiedItem[0]->scenePos();
+    // Based to the top left point of first item in copied Selection
+    const int focusRectIndex = UtilityTools::indexRelativeToPos(firstItemPos,
+                                                                QSize{mapScene->tileWidth(), mapScene->tileHeight()},
+                                                                mapScene->rows(),
+                                                                mapScene->cols());
+    if(focusRectIndex != -1){
+        const QPointF focusRectPos = mapScene->itemByIndex(focusRectIndex)->scenePos();
+        mapScene->focusRect()->setPos(focusRectPos);
+    }
+}
+
+void MapView::adjustCopiedSelectionPosEndDrag()
+{
+    assert(!m_tmpCopiedItem.empty() && "m_tmpCopiedItem cannot be empty");
+    const auto mapScene = static_cast<MapScene*>(scene());
+    const QPointF firstItemPos = m_tmpCopiedItem[0]->scenePos();
+    const QPointF focusRectPos = mapScene->focusRect()->scenePos();
+    const QPointF movement = focusRectPos - firstItemPos;
+    for(auto&& item : m_tmpCopiedItem){
+        item->moveBy(movement.x(), movement.y());
+    }
+}
+
+void MapView::moveCopiedSelection()
+{
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+
+    // Movement Base
+    QPointF movement = mapScene->mouseMoveVector();
+
+    // If copied selection rect is out of map -> adjust movement
+    const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
+    if(copiedSelectionRect.x() < 0)
+        movement.rx() = copiedSelectionRect.x() * -1;
+    if(copiedSelectionRect.y() < 0)
+        movement.ry() = copiedSelectionRect.y() * -1;
+    const QSize mapSize = QSize{mapScene->cols() * mapScene->tileWidth(),
+                                mapScene->rows() * mapScene->tileHeight()};
+    if((copiedSelectionRect.x() + copiedSelectionRect.width()) > mapSize.width()){
+        movement.rx() = mapSize.width() - (copiedSelectionRect.x() + copiedSelectionRect.width());
+    }
+    if((copiedSelectionRect.y() + copiedSelectionRect.height()) > mapSize.height()){
+        movement.ry() = mapSize.height() - (copiedSelectionRect.y() + copiedSelectionRect.height());
+    }
+
+    // Move copied selection
+    for(const auto& item : m_tmpCopiedItem){
+        item->moveBy(movement.x(), movement.y());
+    }
+}
+
+/*void MapView::removeCopiedItem()
+{
+    for(const auto& item : m_tmpCopiedItem){
+        scene()->removeItem(item);
+    }
+    m_tmpCopiedItem.clear();
+}*/

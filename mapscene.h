@@ -44,6 +44,11 @@ public:
     QString currentTileName() const;
     std::vector<QString> fillAll(const QString& textureName);
     void fillAll(const std::vector<QString>& oldTilesTexturesName);
+    QPointF mousePosition() const;
+    QPointF mouseMoveVector() const;
+    QPointF focusRectPos() const;
+    TileItem* itemByIndex(int index);
+    QGraphicsRectItem* focusRect();
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing
@@ -74,6 +79,7 @@ private:
     // std::vector<std::tuple<TileItem*, QString>> ??
     std::vector<TileItem*>            m_tiles{};
     std::vector<QString>              m_tilesTexturesNames{};
+    QPointF                           m_mouseLastPos{};
     QPointF                           m_mousePos{};
     QString                           m_mousePosStr{};
     QStatusBar                       *m_statusBar{nullptr};
@@ -86,6 +92,7 @@ private:
     QString                           m_currentTextureFileName{};
     bool                              m_modified{false};
     QGraphicsRectItem                *m_focusRect{nullptr};
+    QGraphicsRectItem                *m_pasteSelectionRect{nullptr};
 };
 
 #endif // MAPSCENE_H

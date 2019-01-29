@@ -6,5 +6,10 @@
         <file>icons/redo.png</file>
         <file>icons/undo.png</file>
         <file>icons/selection.png</file>
+        <file>icons/moveSelection.png</file>
+        <file>icons/brushTile.png</file>
+        <file>icons/brushTileCursor.png</file>
+        <file>icons/anchor.png</file>
+        <file>icons/anchorCursor.png</file>
     </qresource>
 </RCC>

@@ -39,6 +39,8 @@ protected:
 
 signals:
     void selectToolActived(bool actived);
+    void moveSelectionToolActived(bool actived);
+    void brushTileToolActived(bool checked);
 
 private slots:
     void newMap();
@@ -51,6 +53,14 @@ private slots:
     void fillAll();
     void quit();
     void selectToolChecked(bool checked = false);
+    void moveSelectionToolChecked(bool checked = false);
+    void brushTileToolChecked(bool checked = false);
+    void uncheckSelectAct();
+    void uncheckMoveSelectionAct();
+    void uncheckBrushToolAct();
+    void checkSelectAct();
+    void checkMoveSelectionAct();
+    void checkBrushToolAct();
 
 private:
     void createActions();
@@ -78,6 +88,9 @@ private:
     QString         m_currentFile{};
     bool            m_documentModified{false};
 
+    QAction        *m_selectAct{nullptr};
+    QAction        *m_moveSelectionAct{nullptr};
+    QAction        *m_brushTileAct{nullptr};
 };
 
 #endif // MAINWINDOW_H

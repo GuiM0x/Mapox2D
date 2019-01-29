@@ -25,7 +25,18 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
+
     connect(this, &MainWindow::selectToolActived, m_mapView, &MapView::selectToolActived);
+    connect(this, &MainWindow::moveSelectionToolActived, m_mapView, &MapView::moveSelectionToolActived);
+    connect(this, &MainWindow::brushTileToolActived, m_mapView, &MapView::brushTileToolActived);
+
+    connect(m_mapView, &MapView::uncheckSelectTool, this, &MainWindow::uncheckSelectAct);
+    connect(m_mapView, &MapView::uncheckMoveSelectionTool, this, &MainWindow::uncheckMoveSelectionAct);
+    connect(m_mapView, &MapView::uncheckBrushTileTool, this, &MainWindow::uncheckBrushToolAct);
+
+    connect(m_mapView, &MapView::checkSelectTool, this, &MainWindow::checkSelectAct);
+    connect(m_mapView, &MapView::checkMoveSelectionTool, this, &MainWindow::checkMoveSelectionAct);
+    connect(m_mapView, &MapView::checkBrushTileTool, this, &MainWindow::checkBrushToolAct);
 }
 
 MainWindow::~MainWindow()
@@ -132,10 +143,47 @@ void MainWindow::quit()
 
 void MainWindow::selectToolChecked(bool checked)
 {
-    if(checked)
-        emit selectToolActived(true);
-    else
-        emit selectToolActived(false);
+    emit selectToolActived(checked);
+}
+
+void MainWindow::moveSelectionToolChecked(bool checked)
+{
+    emit moveSelectionToolActived(checked);
+}
+
+void MainWindow::brushTileToolChecked(bool checked)
+{
+    emit brushTileToolActived(checked);
+}
+
+void MainWindow::uncheckSelectAct()
+{
+    m_selectAct->setChecked(false);
+}
+
+void MainWindow::uncheckMoveSelectionAct()
+{
+    m_moveSelectionAct->setChecked(false);
+}
+
+void MainWindow::uncheckBrushToolAct()
+{
+    m_brushTileAct->setChecked(false);
+}
+
+void MainWindow::checkSelectAct()
+{
+    m_selectAct->setChecked(true);
+}
+
+void MainWindow::checkMoveSelectionAct()
+{
+    m_moveSelectionAct->setChecked(true);
+}
+
+void MainWindow::checkBrushToolAct()
+{
+    m_brushTileAct->setChecked(true);
 }
 
 void MainWindow::createActions()
@@ -242,12 +290,30 @@ void MainWindow::createActions()
 
     // SELECTION
     QIcon selectIcon{":/icons/selection.png"};
-    QAction *selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
-    selectAct->setStatusTip(tr("Rectangular selection"));
-    selectAct->setCheckable(true);
-    connect(selectAct, &QAction::triggered, this, &MainWindow::selectToolChecked);
-    toolsMenu->addAction(selectAct);
-    toolsToolBar->addAction(selectAct);
+    m_selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
+    m_selectAct->setStatusTip(tr("Rectangular selection"));
+    m_selectAct->setCheckable(true);
+    connect(m_selectAct, &QAction::triggered, this, &MainWindow::selectToolChecked);
+    toolsMenu->addAction(m_selectAct);
+    toolsToolBar->addAction(m_selectAct);
+
+    // MOVE SELECTION
+    QIcon moveSelectionIcon{":/icons/moveSelection.png"};
+    m_moveSelectionAct = new QAction{moveSelectionIcon, tr("&Move Selection Tool"), this};
+    m_moveSelectionAct->setStatusTip(tr("Move current selection"));
+    m_moveSelectionAct->setCheckable(true);
+    connect(m_moveSelectionAct, &QAction::triggered, this, &MainWindow::moveSelectionToolChecked);
+    toolsMenu->addAction(m_moveSelectionAct);
+    toolsToolBar->addAction(m_moveSelectionAct);
+
+    // FILL TILE
+    QIcon brushTileIcon{":/icons/brushTile.png"};
+    m_brushTileAct = new QAction{brushTileIcon, tr("&Brush Tile Tool"), this};
+    m_brushTileAct->setStatusTip(tr("Fill a tile with texture selected in list"));
+    m_brushTileAct->setCheckable(true);
+    connect(m_brushTileAct, &QAction::triggered, this, &MainWindow::brushTileToolChecked);
+    toolsMenu->addAction(m_brushTileAct);
+    toolsToolBar->addAction(m_brushTileAct);
 
     /////////////////////// HELP MENU
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));

@@ -5,6 +5,8 @@
 #include "tileitem.h"
 #include "commands/filltilecommand.h"
 #include "commands/deletetilecommand.h"
+#include "commands/pastecommand.h"
+#include "tools/utilitytools.h"
 
 #include <map>
 #include <algorithm>
@@ -31,6 +33,14 @@ public:
     void holdUndoStack(QUndoStack *undoStack);
     void reset(const QRectF& mapSceneBounding);
 
+signals:
+    void uncheckMoveSelectionTool();
+    void uncheckSelectTool();
+    void uncheckBrushTileTool();
+    void checkMoveSelectionTool();
+    void checkSelectTool();
+    void checkBrushTileTool();
+
 public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
     // The signal indicate that a mouse Left button is pressed
@@ -38,6 +48,8 @@ public slots:
     void mouseMovingAndPressing();
     void rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint);
     void selectToolActived(bool actived);
+    void moveSelectionToolActived(bool actived);
+    void brushTileToolActived(bool actived);
     void copyTriggered();
     void pasteTriggered();
 
@@ -56,6 +68,12 @@ private:
     void shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected);
     void growToSelection(const QList<QGraphicsItem*>& itemsSelected);
     TileItem* copyTile(TileItem *itemToCopy);
+    QRectF copiedSelectionBoundingRect() const;
+    bool canDragCopiedSelection() const;
+    void adjustFocusRectCopiedSelectionDragging();
+    void adjustCopiedSelectionPosEndDrag();
+    void moveCopiedSelection();
+    void removeCopiedItem();
 
 private:
     std::map<std::string, bool> m_keysState{};
@@ -64,9 +82,11 @@ private:
     ItemsSelected               m_originalItemsSelected{};
     ItemsCopied                 m_tmpCopiedItem{};
     bool                        m_selectionToolActived{false};
+    bool                        m_moveSelectionToolActived{false};
+    bool                        m_brushToolActived{false};
 
 private:
-    const char padding[7] = ""; // Only for padding "byte"
+    const char padding[6] = ""; // Only for padding "byte"
 };
 
 #endif // MAPVIEW_H
