@@ -17,8 +17,11 @@ void MapView::reset(const QRectF& mapSceneBounding)
 {
     setSceneRect(mapSceneBounding);
     resetTransform();
+
     m_originalItemsSelected.clear();
-    m_tmpCopiedItem.clear();
+    m_copiedItems.clear();
+    m_pastedItems.clear();
+    toolTriggered(true, ToolType::Brush);
 }
 
 void MapView::mouseMovingAndPressing()
@@ -27,13 +30,13 @@ void MapView::mouseMovingAndPressing()
         fillTile();
     }
 
-    if(canDragCopiedSelection()){
-        adjustFocusRectCopiedSelectionDragging();
-        moveCopiedSelection();
+    if(canDragPastedSelection()){
+        adjustFocusRectPastedSelectionDragging();
+        movePastedSelection();
     }
 }
 
-void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint)
+void MapView::rubberChanged(const QRect& rubberBandRect)
 {
     QList<QGraphicsItem*> itemsSelected = items(rubberBandRect);
     const std::size_t selectedSize = static_cast<std::size_t>(itemsSelected.size());
@@ -48,54 +51,51 @@ void MapView::rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPoint
     }
 }
 
-void MapView::selectToolActived(bool actived)
+void MapView::toolTriggered(bool trigger, ToolType type)
 {
-    m_selectionToolActived = actived;
-    if(m_selectionToolActived){
-        m_moveSelectionToolActived = false;
-        m_brushToolActived = false;
-        QCursor cursor{Qt::SizeFDiagCursor};
-        setCursor(cursor);
-        emit uncheckMoveSelectionTool();
-        emit uncheckBrushTileTool();
-        emit checkSelectTool();
-    } else {
-        QCursor cursor{Qt::ArrowCursor};
-        setCursor(cursor);
-    }
-}
+    m_selectionToolActived = false;
+    m_moveSelectionToolActived = false;
+    m_brushToolActived = false;
 
-void MapView::moveSelectionToolActived(bool actived)
-{
-    m_moveSelectionToolActived = actived;
-    if(m_moveSelectionToolActived){
-        m_selectionToolActived = false;
-        m_brushToolActived = false;
-        QCursor cursor{Qt::SizeAllCursor};
-        setCursor(cursor);
-        emit uncheckSelectTool();
-        emit uncheckBrushTileTool();
-        emit checkMoveSelectionTool();
-    } else {
+    switch(type){
+    case ToolType::Selection:
+        m_selectionToolActived = trigger;
+        if(m_selectionToolActived){
+            QCursor cursor{Qt::SizeFDiagCursor};
+            setCursor(cursor);
+            emit checkTool(ToolType::Selection);
+        } else {
+            QCursor cursor{Qt::ArrowCursor};
+            setCursor(cursor);
+        }
+        break;
+    case ToolType::MoveSelection:
+        m_moveSelectionToolActived = trigger;
+        if(m_moveSelectionToolActived){
+            QCursor cursor{Qt::SizeAllCursor};
+            setCursor(cursor);
+            emit checkTool(ToolType::MoveSelection);
+        } else {
+            QCursor cursor{Qt::ArrowCursor};
+            setCursor(cursor);
+        }
+        break;
+    case ToolType::Brush:
+        m_brushToolActived = trigger;
+        if(m_brushToolActived){
+            QCursor cursor{QPixmap{":/icons/brushTileCursor"}};
+            setCursor(cursor);
+            emit checkTool(ToolType::Brush);
+        } else {
+            QCursor cursor{Qt::ArrowCursor};
+            setCursor(cursor);
+        }
+        break;
+    case ToolType::NoTool:
+        emit checkTool(ToolType::NoTool);
         QCursor cursor{Qt::ArrowCursor};
         setCursor(cursor);
-    }
-}
-
-void MapView::brushTileToolActived(bool actived)
-{
-    m_brushToolActived = actived;
-    if(m_brushToolActived){
-        m_selectionToolActived = false;
-        m_moveSelectionToolActived = false;
-        QCursor cursor{QPixmap{":/icons/brushTileCursor"}};
-        setCursor(cursor);
-        emit uncheckSelectTool();
-        emit uncheckMoveSelectionTool();
-        emit checkBrushTileTool();
-    } else {
-        QCursor cursor{Qt::ArrowCursor};
-        setCursor(cursor);
+        break;
     }
 }
 
@@ -103,13 +103,13 @@ void MapView::copyTriggered()
 {
     // Items Selected ?
     if(!m_originalItemsSelected.empty()){
-        if(!m_tmpCopiedItem.empty()) m_tmpCopiedItem.clear();
+        if(!m_copiedItems.empty()) m_copiedItems.clear();
         // Append to copied items List
         for(const auto& item : m_originalItemsSelected){
-            m_tmpCopiedItem.append(copyTile(std::get<0>(item)));
+            m_copiedItems.append(copyTile(std::get<0>(item)));
         }
         // Sort by original index
-        std::sort(std::begin(m_tmpCopiedItem), std::end(m_tmpCopiedItem),
+        std::sort(std::begin(m_copiedItems), std::end(m_copiedItems),
                   [](TileItem *item1, TileItem *item2){
                         return item1->index() < item2->index();
                   });
@@ -120,28 +120,39 @@ void MapView::copyTriggered()
 
 void MapView::pasteTriggered()
 {
-    // TO DO : AVOID DOUBLE CTRL + V ?
-    if(!m_tmpCopiedItem.empty()){
-        moveSelectionToolActived(true);
+    if(!m_copiedItems.empty()){
+        toolTriggered(true, ToolType::MoveSelection);
         auto mapScene = static_cast<MapScene*>(scene());
-        QUndoCommand *pasteCommand = new PasteCommand{mapScene, &m_tmpCopiedItem};
+        QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_pastedItems};
         m_undoStack->push(pasteCommand);
     }
 }
 
 void MapView::itemFocusChanged()
 {
-    if(canDragCopiedSelection()){
+    if(canDragPastedSelection()){
         const QCursor cursor{Qt::SizeAllCursor};
         setCursor(cursor);
     }
 
-    // WARNING : canAnchor() must be call after canDragCopiedSelection()
+    // WARNING : canAnchor() must be call after canDragPastedSelection()
     //           This is needed to avoid a bug when cursor get out of copied selection rect
     //           and doesn't change.
     if(canAnchor()){
         const QCursor cursor{QPixmap{":/icons/anchorCursor.png"}};
         setCursor(cursor);
+    }
+}
+
+void MapView::fillSelection()
+{
+    auto *mapScene = static_cast<MapScene*>(scene());
+    const QString textureSelectedInList = mapScene->currentTextureName();
+    if(!textureSelectedInList.isEmpty()){
+        QUndoCommand *fillSelectionCommand = new FillSelectionCommand{mapScene,
+                                                                      textureSelectedInList,
+                                                                      m_originalItemsSelected};
+        m_undoStack->push(fillSelectionCommand);
     }
 }
 
@@ -223,8 +234,8 @@ void MapView::mouseReleaseEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::LeftButton){
         m_keysState["LeftButton"] = false;
-        if(canDragCopiedSelection()){
-            adjustCopiedSelectionPosEndDrag();
+        if(canDragPastedSelection()){
+            adjustPastedSelectionPosEndDrag();
         }
     }
     QGraphicsView::mouseReleaseEvent(event);
@@ -303,12 +314,12 @@ TileItem* MapView::copyTile(TileItem *itemToCopy)
     return copiedItem;
 }
 
-QRectF MapView::copiedSelectionBoundingRect() const
+QRectF MapView::pastedSelectionBoundingRect() const
 {
-    assert(!m_tmpCopiedItem.empty()
-           && "MapView::copiedSelectionBoundingRect - m_tmpCopiedItem cannot be empty");
-    const QPointF startPoint{m_tmpCopiedItem[0]->scenePos()};
-    auto *lastItem = m_tmpCopiedItem.back();
+    assert(!m_pastedItems.empty()
+           && "MapView::pastedSelectionBoundingRect - m_pastedItems cannot be empty");
+    const QPointF startPoint = m_pastedItems[0]->scenePos();
+    const TileItem *lastItem = m_pastedItems.back();
     const QPointF lastItemPos = lastItem->scenePos();
     MapScene *mapScene = static_cast<MapScene*>(scene());
     const QSizeF itemSize{static_cast<qreal>(mapScene->tileWidth()),
@@ -320,14 +331,14 @@ QRectF MapView::copiedSelectionBoundingRect() const
     return boundingSelection;
 }
 
-bool MapView::canDragCopiedSelection() const
+bool MapView::canDragPastedSelection() const
 {
-    if(m_moveSelectionToolActived && !m_tmpCopiedItem.empty()){
+    if(m_moveSelectionToolActived && !m_pastedItems.empty()){
         const auto mapScene = static_cast<MapScene*>(scene());
         const QRectF sceneRect = QRectF{QPointF{0, 0}, QSizeF{mapScene->sceneRect().size()}};
         const QPointF mousePos = mapScene->mousePosition();
-        const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
-        if(sceneRect.contains(mousePos) && copiedSelectionRect.contains(mousePos)){
+        const QRectF pastedSelectionRect = pastedSelectionBoundingRect();
+        if(sceneRect.contains(mousePos) && pastedSelectionRect.contains(mousePos)){
             return true;
         }
     }
@@ -336,10 +347,10 @@ bool MapView::canDragCopiedSelection() const
 
 bool MapView::canAnchor() const
 {
-    if(m_moveSelectionToolActived && !m_tmpCopiedItem.empty()){
+    if(m_moveSelectionToolActived && !m_pastedItems.empty()){
         const auto mapScene = static_cast<MapScene*>(scene());
         const QPointF mousePos = mapScene->mousePosition();
-        const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
+        const QRectF copiedSelectionRect = pastedSelectionBoundingRect();
         if(mousePos.x() < copiedSelectionRect.x() ||
                 mousePos.x() >= copiedSelectionRect.x() + copiedSelectionRect.width() ||
                 mousePos.y() < copiedSelectionRect.y() ||
@@ -350,11 +361,11 @@ bool MapView::canAnchor() const
     return false;
 }
 
-void MapView::adjustFocusRectCopiedSelectionDragging()
+void MapView::adjustFocusRectPastedSelectionDragging()
 {
-    assert(!m_tmpCopiedItem.empty() && "m_tmpCopiedItem cannot be empty");
+    assert(!m_pastedItems.empty() && "m_pastedItems cannot be empty");
     const auto mapScene = static_cast<MapScene*>(scene());
-    const QPointF firstItemPos = m_tmpCopiedItem[0]->scenePos();
+    const QPointF firstItemPos = m_pastedItems[0]->scenePos();
     // Based to the top left point of first item in copied Selection
     const int focusRectIndex = UtilityTools::indexRelativeToPos(firstItemPos,
                                                                 QSize{mapScene->tileWidth(), mapScene->tileHeight()},
@@ -366,19 +377,19 @@ void MapView::adjustFocusRectCopiedSelectionDragging()
     }
 }
 
-void MapView::adjustCopiedSelectionPosEndDrag()
+void MapView::adjustPastedSelectionPosEndDrag()
 {
-    assert(!m_tmpCopiedItem.empty() && "m_tmpCopiedItem cannot be empty");
+    assert(!m_pastedItems.empty() && "m_pastedItems cannot be empty");
     const auto mapScene = static_cast<MapScene*>(scene());
-    const QPointF firstItemPos = m_tmpCopiedItem[0]->scenePos();
+    const QPointF firstItemPos = m_pastedItems[0]->scenePos();
     const QPointF focusRectPos = mapScene->focusRect()->scenePos();
     const QPointF movement = focusRectPos - firstItemPos;
-    for(auto&& item : m_tmpCopiedItem){
+    for(auto&& item : m_pastedItems){
         item->moveBy(movement.x(), movement.y());
     }
 }
 
-void MapView::moveCopiedSelection()
+void MapView::movePastedSelection()
 {
     MapScene *mapScene = static_cast<MapScene*>(scene());
 
@@ -386,7 +397,7 @@ void MapView::moveCopiedSelection()
     QPointF movement = mapScene->mouseMoveVector();
 
     // If copied selection rect is out of map -> adjust movement
-    const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
+    const QRectF copiedSelectionRect = pastedSelectionBoundingRect();
     if(copiedSelectionRect.x() < 0)
         movement.rx() = copiedSelectionRect.x() * -1;
     if(copiedSelectionRect.y() < 0)
@@ -401,15 +412,7 @@ void MapView::moveCopiedSelection()
     }
 
     // Move copied selection
-    for(const auto& item : m_tmpCopiedItem){
+    for(const auto& item : m_pastedItems){
         item->moveBy(movement.x(), movement.y());
     }
 }
-
-/*void MapView::removeCopiedItem()
-{
-    for(const auto& item : m_tmpCopiedItem){
-        scene()->removeItem(item);
-    }
-    m_tmpCopiedItem.clear();
-}*/

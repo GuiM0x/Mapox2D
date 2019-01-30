@@ -40,9 +40,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 signals:
-    void selectToolActived(bool actived);
-    void moveSelectionToolActived(bool actived);
-    void brushTileToolActived(bool checked);
+    void toolTriggered(bool trigger, ToolType type);
 
 private slots:
     void newMap();
@@ -52,17 +50,11 @@ private slots:
     void docWasModified();
     void about();
     void openTexture();
-    void fillAll();
     void quit();
-    void selectToolChecked(bool checked = false);
-    void moveSelectionToolChecked(bool checked = false);
-    void brushTileToolChecked(bool checked = false);
-    void uncheckSelectAct();
-    void uncheckMoveSelectionAct();
-    void uncheckBrushToolAct();
-    void checkSelectAct();
-    void checkMoveSelectionAct();
-    void checkBrushToolAct();
+    void selectToolTriggered(bool trigger);
+    void moveSelectionToolTriggered(bool trigger);
+    void brushTileToolTriggered(bool trigger);
+    void checkedTool(ToolType type = ToolType::NoTool);
 
 private:
     void createActions();

@@ -5,6 +5,7 @@
 #include <QSize>
 
 enum class ToolType{
+    NoTool,
     Selection,
     MoveSelection,
     Brush

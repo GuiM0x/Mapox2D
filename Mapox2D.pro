@@ -34,11 +34,11 @@ SOURCES += \
     commands/filltilecommand.cpp \
     tools/dataloader.cpp \
     tools/datasaver.cpp \
-    commands/fillallcommand.cpp \
     dialogs/loadingmapdialog.cpp \
     dialogs/newmapdialog.cpp \
     tileitem.cpp \
-    commands/pastecommand.cpp
+    commands/pastecommand.cpp \
+    commands/fillselectioncommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -50,12 +50,12 @@ HEADERS += \
     tools/stringtools.h \
     tools/dataloader.h \
     tools/datasaver.h \
-    commands/fillallcommand.h \
     dialogs/loadingmapdialog.h \
     dialogs/newmapdialog.h \
     tools/utilitytools.h \
     tileitem.h \
-    commands/pastecommand.h
+    commands/pastecommand.h \
+    commands/fillselectioncommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

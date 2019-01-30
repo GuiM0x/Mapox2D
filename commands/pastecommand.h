@@ -11,7 +11,8 @@ class PasteCommand : public QUndoCommand
 {
 public:
     PasteCommand(MapScene* scene,
-                 QList<TileItem*> *copiedTiles,
+                 const QList<TileItem*>& copiedTiles,
+                 QList<TileItem*> *pastedTiles,
                  QUndoCommand *parent = nullptr);
 
 public:
@@ -20,8 +21,8 @@ public:
 
 private:
     MapScene *m_mapScene{nullptr};
-    QList<TileItem*> *m_copiedTiles{nullptr};
-    QList<TileItem*>  m_tmpSavedTiles{};
+    QList<TileItem*>  m_copiedTiles{};
+    QList<TileItem*> *m_pastedTiles{nullptr};
 };
 
 #endif // PASTECOMMAND_H

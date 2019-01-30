@@ -116,12 +116,28 @@ void MapScene::fillTile(int index, const QString& textureName)
     if(index != -1 && m_textureList != nullptr){
         std::size_t id = static_cast<std::size_t>(index);
         if(textureName != m_tilesTexturesNames[id]){
-            QPixmap scaled = m_textureList->getTexture(textureName).scaled(m_tileSize.width(), m_tileSize.height());
+            QPixmap scaled = m_textureList->getTexture(textureName)
+                             .scaled(m_tileSize.width(), m_tileSize.height());
             m_tiles[id]->setBrush(QBrush{scaled});
             m_tiles[id]->setName(textureName);
             m_tilesTexturesNames[id] = textureName;
         }
     }
+}
+
+// USED BY COMMANDS (FillSelectionCommand)
+void MapScene::fillTile(TileItem *item, const QString& textureName)
+{
+    assert(item != nullptr);
+    QPixmap scaled{};
+    if(!textureName.isEmpty())
+        scaled = m_textureList->getTexture(textureName)
+                 .scaled(m_tileSize.width(), m_tileSize.height());
+    item->setBrush(QBrush{scaled});
+    item->setName(textureName);
+    const int index = item->index();
+    assert(index >= 0 && index < m_rows*m_cols);
+    m_tilesTexturesNames[static_cast<std::size_t>(index)] = textureName;
 }
 
 // USED BY COMMANDS
@@ -150,38 +166,6 @@ QString MapScene::currentTileName() const
     if(m_currentIndex != -1)
         return m_tiles[static_cast<std::size_t>(m_currentIndex)]->name();
     return "";
-}
-
-// USED BY COMMANDS
-std::vector<QString> MapScene::fillAll(const QString& textureName)
-{
-    const std::vector<QString> oldTilesTexturesNames{m_tilesTexturesNames};
-    const int gridSize = m_rows*m_cols;
-    LoadingMapDialog progress{gridSize, "Filling map...", "Cancel", 0, 100};
-    for(int i = 0; i < gridSize; ++i){
-        fillTile(i, textureName);
-        progress.updateBar(i);
-    }
-    progress.setValue(100);
-    return oldTilesTexturesNames;
-}
-
-// USED BY COMMANDS
-void MapScene::fillAll(const std::vector<QString>& oldTilesTexturesNames)
-{
-    const int gridSize = m_rows*m_cols;
-    LoadingMapDialog progress{gridSize, "Filling map...", "Cancel", 0, 100};
-    for(std::size_t i = 0; i < oldTilesTexturesNames.size(); ++i){
-        if(!oldTilesTexturesNames[i].isEmpty()){
-            fillTile(static_cast<int>(i), oldTilesTexturesNames[i]);
-        } else {
-            m_tiles[i]->setBrush(QBrush{QPixmap{}});
-            m_tiles[i]->setName("");
-            m_tilesTexturesNames[i] = "";
-        }
-        progress.updateBar(static_cast<int>(i));
-    }
-    progress.setValue(100);
 }
 
 QPointF MapScene::mousePosition() const
@@ -245,7 +229,8 @@ void MapScene::mouseMoveEvent(QGraphicsSceneMouseEvent *mouseEvent)
 
     if(m_statusBar != nullptr){
         QString tileName =
-                (m_currentIndex != -1) ? m_tiles[static_cast<std::size_t>(m_currentIndex)]->name() : "No Tile";
+                (m_currentIndex >= 0 && m_currentIndex < static_cast<int>(m_tiles.size())) ?
+                    m_tiles[static_cast<std::size_t>(m_currentIndex)]->name() : "No Tile";
         if(tileName.isEmpty()) tileName = "Default";
         m_statusBar->showMessage(m_mousePosStr + " - index[" +
                                  QString::number(m_currentIndex) +
@@ -312,9 +297,10 @@ void MapScene::fillTile(int index)
 
 void MapScene::clearAllContainers()
 {
-    clear();
     m_tiles.clear();
     m_tilesTexturesNames.clear();
+
+    clear();
     m_focusRect = nullptr;
 }
 

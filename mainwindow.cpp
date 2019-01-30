@@ -25,18 +25,10 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
+    connect(m_mapScene, &MapScene::triggerTool, m_mapView, &MapView::toolTriggered);
 
-    connect(this, &MainWindow::selectToolActived, m_mapView, &MapView::selectToolActived);
-    connect(this, &MainWindow::moveSelectionToolActived, m_mapView, &MapView::moveSelectionToolActived);
-    connect(this, &MainWindow::brushTileToolActived, m_mapView, &MapView::brushTileToolActived);
-
-    connect(m_mapView, &MapView::uncheckSelectTool, this, &MainWindow::uncheckSelectAct);
-    connect(m_mapView, &MapView::uncheckMoveSelectionTool, this, &MainWindow::uncheckMoveSelectionAct);
-    connect(m_mapView, &MapView::uncheckBrushTileTool, this, &MainWindow::uncheckBrushToolAct);
-
-    connect(m_mapView, &MapView::checkSelectTool, this, &MainWindow::checkSelectAct);
-    connect(m_mapView, &MapView::checkMoveSelectionTool, this, &MainWindow::checkMoveSelectionAct);
-    connect(m_mapView, &MapView::checkBrushTileTool, this, &MainWindow::checkBrushToolAct);
+    connect(this, &MainWindow::toolTriggered, m_mapView, &MapView::toolTriggered);
+    connect(m_mapView, &MapView::checkTool, this, &MainWindow::checkedTool);
 }
 
 MainWindow::~MainWindow()
@@ -65,8 +57,8 @@ void MainWindow::newMap()
         if(!values.empty()){
             m_undoStack->clear();
             m_textureList->clean();
-            createMapScene(values);
             setCurrentFile(QString{});
+            createMapScene(values);
         }
     }
 }
@@ -126,64 +118,46 @@ void MainWindow::openTexture()
     }
 }
 
-void MainWindow::fillAll()
-{
-    const QString textureName = m_mapScene->currentTextureName();
-    if(!textureName.isEmpty()){
-        QUndoCommand *fillAllCommand = new FillAllCommand{m_mapScene, textureName};
-        m_undoStack->push(fillAllCommand);
-    }
-}
-
 void MainWindow::quit()
 {
     if(maybeSave())
         qApp->quit();
 }
 
-void MainWindow::selectToolChecked(bool checked)
+void MainWindow::selectToolTriggered(bool trigger)
 {
-    emit selectToolActived(checked);
+    emit toolTriggered(trigger, ToolType::Selection);
 }
 
-void MainWindow::moveSelectionToolChecked(bool checked)
+void MainWindow::moveSelectionToolTriggered(bool trigger)
 {
-    emit moveSelectionToolActived(checked);
+    emit toolTriggered(trigger, ToolType::MoveSelection);
 }
 
-void MainWindow::brushTileToolChecked(bool checked)
+void MainWindow::brushTileToolTriggered(bool trigger)
 {
-    emit brushTileToolActived(checked);
+    emit toolTriggered(trigger, ToolType::Brush);
 }
 
-void MainWindow::uncheckSelectAct()
+void MainWindow::checkedTool(ToolType type)
 {
     m_selectAct->setChecked(false);
-}
-
-void MainWindow::uncheckMoveSelectionAct()
-{
     m_moveSelectionAct->setChecked(false);
-}
-
-void MainWindow::uncheckBrushToolAct()
-{
     m_brushTileAct->setChecked(false);
-}
 
-void MainWindow::checkSelectAct()
-{
-    m_selectAct->setChecked(true);
-}
-
-void MainWindow::checkMoveSelectionAct()
-{
-    m_moveSelectionAct->setChecked(true);
-}
-
-void MainWindow::checkBrushToolAct()
-{
-    m_brushTileAct->setChecked(true);
+    switch(type){
+    case ToolType::Selection :
+        m_selectAct->setChecked(true);
+        break;
+    case ToolType::MoveSelection :
+        m_moveSelectionAct->setChecked(true);
+        break;
+    case ToolType::Brush :
+        m_brushTileAct->setChecked(true);
+        break;
+    case ToolType::NoTool :
+        break;
+    }
 }
 
 void MainWindow::createActions()
@@ -277,12 +251,12 @@ void MainWindow::createActions()
 
     editMenu->addSeparator();
 
-    // FILL
-    QAction *fillAllAct = new QAction{tr("F&ill with current texture"), this};
-    fillAllAct->setShortcut(QKeySequence{tr("Ctrl+,")});
-    fillAllAct->setStatusTip(tr("Fill the grid with selected texture in list"));
-    connect(fillAllAct, &QAction::triggered, this, &MainWindow::fillAll);
-    editMenu->addAction(fillAllAct);
+    // FILL SELECTION (OR ALL MAP IF NO SELECTION)
+    QAction *fillSelectionAct = new QAction{tr("F&ill with current texture"), this};
+    fillSelectionAct->setShortcut(QKeySequence{tr("Ctrl+,")});
+    fillSelectionAct->setStatusTip(tr("Fill selected region or all map if no selection"));
+    connect(fillSelectionAct, &QAction::triggered, m_mapView, &MapView::fillSelection);
+    editMenu->addAction(fillSelectionAct);
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
@@ -293,7 +267,7 @@ void MainWindow::createActions()
     m_selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
     m_selectAct->setStatusTip(tr("Rectangular selection"));
     m_selectAct->setCheckable(true);
-    connect(m_selectAct, &QAction::triggered, this, &MainWindow::selectToolChecked);
+    connect(m_selectAct, &QAction::triggered, this, &MainWindow::selectToolTriggered);
     toolsMenu->addAction(m_selectAct);
     toolsToolBar->addAction(m_selectAct);
 
@@ -302,7 +276,7 @@ void MainWindow::createActions()
     m_moveSelectionAct = new QAction{moveSelectionIcon, tr("&Move Selection Tool"), this};
     m_moveSelectionAct->setStatusTip(tr("Move current selection"));
     m_moveSelectionAct->setCheckable(true);
-    connect(m_moveSelectionAct, &QAction::triggered, this, &MainWindow::moveSelectionToolChecked);
+    connect(m_moveSelectionAct, &QAction::triggered, this, &MainWindow::moveSelectionToolTriggered);
     toolsMenu->addAction(m_moveSelectionAct);
     toolsToolBar->addAction(m_moveSelectionAct);
 
@@ -311,7 +285,7 @@ void MainWindow::createActions()
     m_brushTileAct = new QAction{brushTileIcon, tr("&Brush Tile Tool"), this};
     m_brushTileAct->setStatusTip(tr("Fill a tile with texture selected in list"));
     m_brushTileAct->setCheckable(true);
-    connect(m_brushTileAct, &QAction::triggered, this, &MainWindow::brushTileToolChecked);
+    connect(m_brushTileAct, &QAction::triggered, this, &MainWindow::brushTileToolTriggered);
     toolsMenu->addAction(m_brushTileAct);
     toolsToolBar->addAction(m_brushTileAct);
 
@@ -339,6 +313,7 @@ void MainWindow::createMapScene()
 {
     m_mapScene->holdStatusBar(statusBar());
     m_mapScene->holdTextureList(m_textureList);
+
     connect(m_mapScene, &MapScene::mouseMoveAndPressLeft,
             m_mapView, &MapView::mouseMovingAndPressing);
     connect(m_mapScene, &MapScene::itemFocusChange,
@@ -355,11 +330,11 @@ void MainWindow::createMapScene()
 void MainWindow::createMapScene(std::map<QString, int>& values)
 {
     m_documentModified = false;
+    m_mapView->reset();
     m_mapScene->createMatrix(values["tileWidth"],
                              values["tileHeight"],
                              values["totalRows"],
                              values["totalCols"]);
-
     m_mapView->reset(m_mapScene->itemsBoundingRect());
 }
 

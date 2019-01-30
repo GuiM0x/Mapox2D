@@ -6,6 +6,7 @@
 #include "commands/filltilecommand.h"
 #include "commands/deletetilecommand.h"
 #include "commands/pastecommand.h"
+#include "commands/fillselectioncommand.h"
 #include "tools/utilitytools.h"
 
 #include <map>
@@ -25,34 +26,29 @@ class MapView : public QGraphicsView
 
     using ItemsSelected = std::vector<std::tuple<TileItem*, QPen>>;
     using ItemsCopied   = QList<TileItem*>;
+    using ItemsPasted   = QList<TileItem*>;
 
 public:
     MapView(QWidget *parent = nullptr);
 
 public:
     void holdUndoStack(QUndoStack *undoStack);
-    void reset(const QRectF& mapSceneBounding);
+    void reset(const QRectF& mapSceneBounding = QRectF{});
 
 signals:
-    void uncheckMoveSelectionTool();
-    void uncheckSelectTool();
-    void uncheckBrushTileTool();
-    void checkMoveSelectionTool();
-    void checkSelectTool();
-    void checkBrushTileTool();
+    void checkTool(ToolType type = ToolType::NoTool);
 
 public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
     // The signal indicate that a mouse Left button is pressed
     // and mouse moving. This slot create a command that fill a tile
     void mouseMovingAndPressing();
-    void rubberChanged(QRect rubberBandRect, QPointF fromScenePoint, QPointF toScenePoint);
-    void selectToolActived(bool actived);
-    void moveSelectionToolActived(bool actived);
-    void brushTileToolActived(bool actived);
+    void rubberChanged(const QRect& rubberBandRect);
+    void toolTriggered(bool trigger, ToolType type);
     void copyTriggered();
     void pasteTriggered();
     void itemFocusChanged();
+    void fillSelection();
 
 private:
     void focusOutEvent(QFocusEvent *event) override;
@@ -69,20 +65,20 @@ private:
     void shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected);
     void growToSelection(const QList<QGraphicsItem*>& itemsSelected);
     TileItem* copyTile(TileItem *itemToCopy);
-    QRectF copiedSelectionBoundingRect() const;
-    bool canDragCopiedSelection() const;
+    QRectF pastedSelectionBoundingRect() const;
+    bool canDragPastedSelection() const;
     bool canAnchor() const;
-    void adjustFocusRectCopiedSelectionDragging();
-    void adjustCopiedSelectionPosEndDrag();
-    void moveCopiedSelection();
-    void removeCopiedItem();
+    void adjustFocusRectPastedSelectionDragging();
+    void adjustPastedSelectionPosEndDrag();
+    void movePastedSelection();
 
 private:
     std::map<std::string, bool> m_keysState{};
     double                      m_zoomFactor{1.0};
     QUndoStack                 *m_undoStack{nullptr};
     ItemsSelected               m_originalItemsSelected{};
-    ItemsCopied                 m_tmpCopiedItem{};
+    ItemsCopied                 m_copiedItems{};
+    ItemsPasted                 m_pastedItems{};
     bool                        m_selectionToolActived{false};
     bool                        m_moveSelectionToolActived{false};
     bool                        m_brushToolActived{false};

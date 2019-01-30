@@ -38,12 +38,11 @@ public:
     int tileHeight() const;
     std::vector<QString>* allTilesName();
     void fillTile(int index, const QString& textureName);
+    void fillTile(TileItem* item, const QString& textureName);
     void deleteTile(int index);
     int currentTile() const;
     QString currentTextureName() const;
     QString currentTileName() const;
-    std::vector<QString> fillAll(const QString& textureName);
-    void fillAll(const std::vector<QString>& oldTilesTexturesName);
     QPointF mousePosition() const;
     QPointF mouseMoveVector() const;
     QPointF focusRectPos() const;
@@ -56,6 +55,8 @@ signals:
     void mouseMoveAndPressLeft();
     void docModified();
     void itemFocusChange();
+    void triggerTool(bool trigger = true,
+                     ToolType type = ToolType::Selection);
 
 public slots:
     // Connected with signal &QListWidget::itemClicked

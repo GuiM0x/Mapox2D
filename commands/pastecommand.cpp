@@ -1,33 +1,33 @@
 #include "pastecommand.h"
 
 PasteCommand::PasteCommand(MapScene* scene,
-                           QList<TileItem*> *copiedTiles,
+                           const QList<TileItem*>& copiedTiles,
+                           QList<TileItem*> *pastedTiles,
                            QUndoCommand *parent)
     : QUndoCommand{parent}
 {
     m_mapScene = scene;
     m_copiedTiles = copiedTiles;
-    m_tmpSavedTiles = *m_copiedTiles;
-    assert((m_mapScene != nullptr && m_copiedTiles != nullptr) &&
-           "m_mapScene or m_copiedTiles cannot be null");
+    m_pastedTiles = pastedTiles;
+    assert(m_mapScene != nullptr && m_pastedTiles != nullptr);
     QString infos = "Selection Pasted";
     setText(infos);
 }
 
 void PasteCommand::undo()
 {
-    for(const auto& item : *m_copiedTiles){
+    for(const auto& item : m_copiedTiles){
         m_mapScene->removeItem(item);
     }
-    m_copiedTiles->clear();
+    m_pastedTiles->clear();
+    emit m_mapScene->triggerTool();
 }
 
 void PasteCommand::redo()
 {
-    if(m_copiedTiles->empty()){
-        *m_copiedTiles = m_tmpSavedTiles;
-    }
-    for(const auto& tileCopied : *m_copiedTiles){
+    m_pastedTiles->clear();
+    *m_pastedTiles = m_copiedTiles;
+    for(const auto& tileCopied : *m_pastedTiles){
         m_mapScene->addItem(tileCopied);
     }
 }
