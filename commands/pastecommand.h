@@ -21,6 +21,7 @@ public:
 private:
     MapScene *m_mapScene{nullptr};
     QList<TileItem*> *m_copiedTiles{nullptr};
+    QList<TileItem*>  m_tmpSavedTiles{};
 };
 
 #endif // PASTECOMMAND_H

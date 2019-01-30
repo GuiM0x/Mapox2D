@@ -52,6 +52,7 @@ public slots:
     void brushTileToolActived(bool actived);
     void copyTriggered();
     void pasteTriggered();
+    void itemFocusChanged();
 
 private:
     void focusOutEvent(QFocusEvent *event) override;
@@ -70,6 +71,7 @@ private:
     TileItem* copyTile(TileItem *itemToCopy);
     QRectF copiedSelectionBoundingRect() const;
     bool canDragCopiedSelection() const;
+    bool canAnchor() const;
     void adjustFocusRectCopiedSelectionDragging();
     void adjustCopiedSelectionPosEndDrag();
     void moveCopiedSelection();
@@ -86,7 +88,7 @@ private:
     bool                        m_brushToolActived{false};
 
 private:
-    const char padding[6] = ""; // Only for padding "byte"
+    const char padding[5] = ""; // Only for padding "byte"
 };
 
 #endif // MAPVIEW_H

@@ -8,6 +8,7 @@
 #include "dialogs/newmapdialog.h"
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"
+#include "tools/utilitytools.h"
 
 #include <map>
 
@@ -25,6 +26,7 @@
 #include <QUndoView>
 #include <QUndoStack>
 #include <QToolBar>
+#include <QDockWidget>
 
 class MainWindow : public QMainWindow
 {

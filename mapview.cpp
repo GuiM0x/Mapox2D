@@ -129,6 +129,22 @@ void MapView::pasteTriggered()
     }
 }
 
+void MapView::itemFocusChanged()
+{
+    if(canDragCopiedSelection()){
+        const QCursor cursor{Qt::SizeAllCursor};
+        setCursor(cursor);
+    }
+
+    // WARNING : canAnchor() must be call after canDragCopiedSelection()
+    //           This is needed to avoid a bug when cursor get out of copied selection rect
+    //           and doesn't change.
+    if(canAnchor()){
+        const QCursor cursor{QPixmap{":/icons/anchorCursor.png"}};
+        setCursor(cursor);
+    }
+}
+
 void MapView::focusOutEvent(QFocusEvent *event)
 {
     if(event->lostFocus()){
@@ -312,6 +328,22 @@ bool MapView::canDragCopiedSelection() const
         const QPointF mousePos = mapScene->mousePosition();
         const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
         if(sceneRect.contains(mousePos) && copiedSelectionRect.contains(mousePos)){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool MapView::canAnchor() const
+{
+    if(m_moveSelectionToolActived && !m_tmpCopiedItem.empty()){
+        const auto mapScene = static_cast<MapScene*>(scene());
+        const QPointF mousePos = mapScene->mousePosition();
+        const QRectF copiedSelectionRect = copiedSelectionBoundingRect();
+        if(mousePos.x() < copiedSelectionRect.x() ||
+                mousePos.x() >= copiedSelectionRect.x() + copiedSelectionRect.width() ||
+                mousePos.y() < copiedSelectionRect.y() ||
+                mousePos.y() >= copiedSelectionRect.y() + copiedSelectionRect.height()){
             return true;
         }
     }

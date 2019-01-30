@@ -4,6 +4,12 @@
 #include <QPointF>
 #include <QSize>
 
+enum class ToolType{
+    Selection,
+    MoveSelection,
+    Brush
+};
+
 namespace UtilityTools
 {
     inline

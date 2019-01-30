@@ -341,6 +341,8 @@ void MainWindow::createMapScene()
     m_mapScene->holdTextureList(m_textureList);
     connect(m_mapScene, &MapScene::mouseMoveAndPressLeft,
             m_mapView, &MapView::mouseMovingAndPressing);
+    connect(m_mapScene, &MapScene::itemFocusChange,
+            m_mapView, &MapView::itemFocusChanged);
 
     std::map<QString, int> defaultMap{};
     defaultMap["tileWidth"]  = 32;
