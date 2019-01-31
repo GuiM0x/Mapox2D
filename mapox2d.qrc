@@ -11,5 +11,6 @@
         <file>icons/brushTileCursor.png</file>
         <file>icons/anchor.png</file>
         <file>icons/anchorCursor.png</file>
+        <file>icons/importTexture.png</file>
     </qresource>
 </RCC>

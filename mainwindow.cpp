@@ -6,22 +6,21 @@ MainWindow::MainWindow(QWidget *parent)
       m_mapView{new MapView{this}},
       m_mapScene{new MapScene{m_mapView}},
       m_textureList{new TextureList{this}},
-      m_addTextureButton{new QPushButton{this}},
       m_undoStack{new QUndoStack{this}}
 {
-    setCentralWidget(m_centralWidget);
+    //setCentralWidget(m_centralWidget);
+    setCentralWidget(m_mapView);
     setWindowFilePath("Untitled  - Mapox2D");
 
     createActions();
     createMapView();
     createMapScene();
-    createGridLayout();
+    //createGridLayout();
     createStatusBar();
     createUndoView();
+    createDockWindows();
 
-    m_addTextureButton->setText(tr("Add Texture"));
-
-    connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
+    //connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
@@ -175,8 +174,6 @@ void MainWindow::createActions()
     fileMenu->addAction(newAct);
     fileToolBar->addAction(newAct);
 
-    fileMenu->addSeparator();
-
     // OPEN FILE
     QIcon openIcon{":/icons/openFile.png"};
     QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
@@ -194,7 +191,6 @@ void MainWindow::createActions()
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
     fileMenu->addAction(saveAct);
     fileToolBar->addAction(saveAct);
-    fileToolBar->addSeparator();
 
     // SAVE AS
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
@@ -202,6 +198,16 @@ void MainWindow::createActions()
     saveAsAct->setStatusTip(tr("Save current file as..."));
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
+
+    fileToolBar->addSeparator();
+
+    // IMPORT TEXTURE
+    QIcon importTextureIcon{":/icons/importTexture.png"};
+    QAction *importTextureAct = new QAction{importTextureIcon, tr("&Import texture..."), this};
+    importTextureAct->setStatusTip(tr("Import texture from computer"));
+    connect(importTextureAct, &QAction::triggered, this, &MainWindow::openTexture);
+    fileMenu->addAction(importTextureAct);
+    fileToolBar->addAction(importTextureAct);
 
     fileMenu->addSeparator();
 
@@ -338,7 +344,7 @@ void MainWindow::createMapScene(std::map<QString, int>& values)
     m_mapView->reset(m_mapScene->itemsBoundingRect());
 }
 
-void MainWindow::createGridLayout()
+/*void MainWindow::createGridLayout()
 {
     QGridLayout *centralGridLayout = new QGridLayout{};
     centralGridLayout->addWidget(m_mapView, 0, 0, 2, 1);
@@ -347,7 +353,7 @@ void MainWindow::createGridLayout()
     centralGridLayout->addWidget(m_textureList, 1, 1);
     m_textureList->setFixedWidth(300);
     m_centralWidget->setLayout(centralGridLayout);
-}
+}*/
 
 void MainWindow::createStatusBar()
 {
@@ -362,6 +368,30 @@ void MainWindow::createUndoView()
     m_undoView->setWindowTitle(tr("Command List"));
     m_undoView->show();
     m_undoView->setAttribute(Qt::WA_QuitOnClose, false);
+}
+
+void MainWindow::createDockWindows()
+{
+    m_viewMenu = menuBar()->addMenu(tr("&View"));
+
+    const int minWidth{200};
+    const int maxWidth{300};
+
+    QDockWidget *dockTextureList = new QDockWidget{tr("Texture List"), this};
+    dockTextureList->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dockTextureList->setWidget(m_textureList);
+    dockTextureList->setMinimumWidth(minWidth);
+    dockTextureList->setMaximumWidth(maxWidth);
+    addDockWidget(Qt::RightDockWidgetArea, dockTextureList);
+    m_viewMenu->addAction(dockTextureList->toggleViewAction());
+
+    QDockWidget *dockUndoView = new QDockWidget{tr("Command List"), this};
+    dockUndoView->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    dockUndoView->setWidget(m_undoView);
+    dockUndoView->setMinimumWidth(minWidth);
+    dockUndoView->setMaximumWidth(maxWidth);
+    addDockWidget(Qt::RightDockWidgetArea, dockUndoView);
+    m_viewMenu->addAction(dockUndoView->toggleViewAction());
 }
 
 bool MainWindow::maybeSave()

@@ -108,6 +108,12 @@ void MapView::toolTriggered(bool trigger, ToolType type)
             m_undoStack->undo();
         }
     }
+
+    // IF SELECTION TOOL DISABLED
+    // -> remove selection
+    if(!m_selectionToolActived && !m_originalItemsSelected.empty()){
+        restoreOriginalSeletedItem();
+    }
 }
 
 void MapView::copyTriggered()

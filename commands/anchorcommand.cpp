@@ -18,7 +18,6 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
 
 void AnchorCommand::undo()
 {
-    qDebug() << "AnchorCommand::undo()";
     m_pastedTiles->clear();
     for(const auto& item : m_removedPastedTiles){
         auto removedPastedItem = std::get<0>(item);
@@ -31,7 +30,6 @@ void AnchorCommand::undo()
 
 void AnchorCommand::redo()
 {
-    qDebug() << "AnchorCommand::redo()";
     m_removedPastedTiles.clear();
     for(const auto& it : m_firstAnchorPos){
         auto item = std::get<0>(it);
@@ -41,7 +39,6 @@ void AnchorCommand::redo()
     for(const auto& item : *m_pastedTiles){
         const int index = indexByPos(item);
         auto oldTile = m_mapScene->itemByIndex(index);
-        qDebug() << "Old Tile : " << oldTile->name();
         m_removedPastedTiles.push_back(std::make_tuple((item), oldTile->name()));
         // INFO : removeItem() doesn't destroy ptr
         //        it just removes ownership by Scene and pass it to the caller

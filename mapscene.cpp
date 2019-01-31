@@ -116,8 +116,10 @@ void MapScene::fillTile(int index, const QString& textureName)
     if(index != -1 && m_textureList != nullptr){
         std::size_t id = static_cast<std::size_t>(index);
         if(textureName != m_tilesTexturesNames[id]){
-            QPixmap scaled = m_textureList->getTexture(textureName)
-                             .scaled(m_tileSize.width(), m_tileSize.height());
+            QPixmap scaled{};
+            if(!textureName.isEmpty())
+                scaled = m_textureList->getTexture(textureName)
+                         .scaled(m_tileSize.width(), m_tileSize.height());
             m_tiles[id]->setBrush(QBrush{scaled});
             m_tiles[id]->setName(textureName);
             m_tilesTexturesNames[id] = textureName;

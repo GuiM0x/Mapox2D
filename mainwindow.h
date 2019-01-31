@@ -60,9 +60,10 @@ private:
     void createMapView();
     void createMapScene();
     void createMapScene(std::map<QString, int>& values);
-    void createGridLayout();
+    //void createGridLayout();
     void createStatusBar();
     void createUndoView();
+    void createDockWindows();
 
     bool maybeSave();
     bool saveFile(const QString& fileName);
@@ -74,7 +75,6 @@ private:
     MapView        *m_mapView{nullptr};
     MapScene       *m_mapScene{nullptr};
     TextureList    *m_textureList{nullptr};
-    QPushButton    *m_addTextureButton{nullptr};
     QUndoStack     *m_undoStack{nullptr};
     QUndoView      *m_undoView{nullptr};
     bool            m_mouseLeftPress{false};
@@ -84,6 +84,8 @@ private:
     QAction        *m_selectAct{nullptr};
     QAction        *m_moveSelectionAct{nullptr};
     QAction        *m_brushTileAct{nullptr};
+
+    QMenu          *m_viewMenu{nullptr}; // View/Hide dock widget
 };
 
 #endif // MAINWINDOW_H
