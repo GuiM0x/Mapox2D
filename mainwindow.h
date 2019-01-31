@@ -4,7 +4,6 @@
 #include "mapview.h"
 #include "mapscene.h"
 #include "texturelist.h"
-#include "commands/fillallcommand.h"
 #include "dialogs/newmapdialog.h"
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"

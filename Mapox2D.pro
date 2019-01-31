@@ -38,7 +38,8 @@ SOURCES += \
     dialogs/newmapdialog.cpp \
     tileitem.cpp \
     commands/pastecommand.cpp \
-    commands/fillselectioncommand.cpp
+    commands/fillselectioncommand.cpp \
+    commands/anchorcommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -55,7 +56,8 @@ HEADERS += \
     tools/utilitytools.h \
     tileitem.h \
     commands/pastecommand.h \
-    commands/fillselectioncommand.h
+    commands/fillselectioncommand.h \
+    commands/anchorcommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

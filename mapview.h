@@ -7,6 +7,7 @@
 #include "commands/deletetilecommand.h"
 #include "commands/pastecommand.h"
 #include "commands/fillselectioncommand.h"
+#include "commands/anchorcommand.h"
 #include "tools/utilitytools.h"
 
 #include <map>
@@ -71,6 +72,7 @@ private:
     void adjustFocusRectPastedSelectionDragging();
     void adjustPastedSelectionPosEndDrag();
     void movePastedSelection();
+    void anchorPastedSelection();
 
 private:
     std::map<std::string, bool> m_keysState{};

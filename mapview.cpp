@@ -97,6 +97,17 @@ void MapView::toolTriggered(bool trigger, ToolType type)
         setCursor(cursor);
         break;
     }
+
+    // IF MOVE TOOL DISABLED AND LAST COMMAND IS "PASTE SELECTION"
+    // -> QUndoStack::undo()
+    // Why ? Because it "remove" copied items and avoids some programming pain
+    if(!m_moveSelectionToolActived && m_undoStack->count() > 0 && !m_pastedItems.empty()){
+        auto lastCommand = m_undoStack->command(m_undoStack->count() - 1);
+        assert(lastCommand != nullptr);
+        if(lastCommand->actionText() == "paste selection"){
+            m_undoStack->undo();
+        }
+    }
 }
 
 void MapView::copyTriggered()
@@ -121,7 +132,6 @@ void MapView::copyTriggered()
 void MapView::pasteTriggered()
 {
     if(!m_copiedItems.empty()){
-        toolTriggered(true, ToolType::MoveSelection);
         auto mapScene = static_cast<MapScene*>(scene());
         QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_pastedItems};
         m_undoStack->push(pasteCommand);
@@ -224,7 +234,10 @@ void MapView::mousePressEvent(QMouseEvent *event)
             if(m_brushToolActived)
                 fillTile();
         }
-        restoreOriginalSeletedItem(); 
+        restoreOriginalSeletedItem();
+        if(canAnchor()){
+            anchorPastedSelection();
+        }
     }
 
     QGraphicsView::mousePressEvent(event);
@@ -415,4 +428,11 @@ void MapView::movePastedSelection()
     for(const auto& item : m_pastedItems){
         item->moveBy(movement.x(), movement.y());
     }
+}
+
+void MapView::anchorPastedSelection()
+{
+    auto mapScene = static_cast<MapScene*>(scene());
+    QUndoCommand *anchorCommand = new AnchorCommand{mapScene, &m_pastedItems};
+    m_undoStack->push(anchorCommand);
 }

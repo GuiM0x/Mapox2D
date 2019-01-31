@@ -10,7 +10,7 @@ PasteCommand::PasteCommand(MapScene* scene,
     m_copiedTiles = copiedTiles;
     m_pastedTiles = pastedTiles;
     assert(m_mapScene != nullptr && m_pastedTiles != nullptr);
-    QString infos = "Selection Pasted";
+    QString infos = "Selection Pasted\npaste selection";
     setText(infos);
 }
 
@@ -20,7 +20,7 @@ void PasteCommand::undo()
         m_mapScene->removeItem(item);
     }
     m_pastedTiles->clear();
-    emit m_mapScene->triggerTool();
+    m_mapScene->triggerTool(true, ToolType::NoTool);
 }
 
 void PasteCommand::redo()
@@ -30,4 +30,5 @@ void PasteCommand::redo()
     for(const auto& tileCopied : *m_pastedTiles){
         m_mapScene->addItem(tileCopied);
     }
+    m_mapScene->triggerTool(true, ToolType::MoveSelection);
 }
