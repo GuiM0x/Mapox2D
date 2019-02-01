@@ -28,27 +28,9 @@ void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
     LoadingMapDialog progress{totalTiles, "Creating tiles...", "Cancel", 0, 100};
     for(int i = 0; i < rows; ++i){
         for(int j = 0; j < cols; ++j){
-            // Warning : When add an item in scene,
-            //           always init with pos(0, 0) and
-            //           then setPos(x, y) on item.
-            //           Because in function add...(), the pos
-            //           represents the draw coordinate, not the items's pos.
-            //           setPos(x, y) set position for drawing and item coordinates
-            qreal width = tileWidth;
-            qreal height = tileHeight;
-            const QRectF boundings{QPointF{0, 0}, QSizeF{width, height}};
-            TileItem *tile = new TileItem{boundings};
-            QPen pen{};
-            pen.setBrush(QBrush{QColor{135, 135, 135}});
-            tile->setPen(pen);
             qreal x = j*tileWidth;
             qreal y = i*tileHeight;
-            tile->setPos(x, y);
-            tile->setName("");
-            tile->setIndex(i*cols+j);
-            m_tilesTexturesNames.push_back("");
-            m_tiles.push_back(tile);
-            addItem(tile);
+            createTile(x, y, tileWidth, tileHeight);
             if(progress.wasCanceled()){
                 clearAllContainers();
                 break;
@@ -110,36 +92,38 @@ std::vector<QString>* MapScene::allTilesName()
     return &m_tilesTexturesNames;
 }
 
-// USED BY COMMANDS
+// USED BY COMMANDS (FillTileCommand)
 void MapScene::fillTile(int index, const QString& textureName)
 {
-    if(index != -1 && m_textureList != nullptr){
-        std::size_t id = static_cast<std::size_t>(index);
-        if(textureName != m_tilesTexturesNames[id]){
-            QPixmap scaled{};
-            if(!textureName.isEmpty())
-                scaled = m_textureList->getTexture(textureName)
-                         .scaled(m_tileSize.width(), m_tileSize.height());
-            m_tiles[id]->setBrush(QBrush{scaled});
-            m_tiles[id]->setName(textureName);
-            m_tilesTexturesNames[id] = textureName;
-        }
+    assert(index >= 0 && index < m_rows*m_cols);
+
+    auto tile = itemByIndex(index);
+    QImage actualImage = tile->brush().textureImage();
+
+    QPixmap scaled{};
+    if(!textureName.isEmpty())
+        scaled = m_textureList->getTexture(textureName)
+                 .scaled(m_tileSize.width(), m_tileSize.height());
+    QImage newImage = scaled.toImage();
+
+    if(!textureName.isEmpty()){
+        QPainter painter{&newImage};
+        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+        painter.drawImage(0, 0, actualImage);
     }
+
+    const std::size_t id = static_cast<std::size_t>(index);
+    QBrush brush{newImage};
+    m_tiles[id]->setBrush(brush);
+    m_tiles[id]->setName(textureName);
+    m_tilesTexturesNames[id] = textureName;
 }
 
 // USED BY COMMANDS (FillSelectionCommand)
 void MapScene::fillTile(TileItem *item, const QString& textureName)
 {
     assert(item != nullptr);
-    QPixmap scaled{};
-    if(!textureName.isEmpty())
-        scaled = m_textureList->getTexture(textureName)
-                 .scaled(m_tileSize.width(), m_tileSize.height());
-    item->setBrush(QBrush{scaled});
-    item->setName(textureName);
-    const int index = item->index();
-    assert(index >= 0 && index < m_rows*m_cols);
-    m_tilesTexturesNames[static_cast<std::size_t>(index)] = textureName;
+    fillTile(item->index(), textureName);
 }
 
 // USED BY COMMANDS
@@ -290,11 +274,7 @@ bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 void MapScene::fillTile(int index)
 {
     if(canFillTile(index)){
-        std::size_t id = static_cast<std::size_t>(index);
-        QPixmap scaled = m_textureList->getTexture(m_currentTextureFileName).scaled(m_tileSize.width(), m_tileSize.height());
-        m_tiles[id]->setBrush(QBrush{scaled});
-        m_tiles[id]->setName(m_currentTextureFileName);
-        m_tilesTexturesNames[id] = m_currentTextureFileName;
+        fillTile(index, m_currentTextureFileName);
     }
 }
 
@@ -318,4 +298,32 @@ void MapScene::createFocusRect(int tileWidth, int tileHeight)
     m_focusRect->setBrush(QBrush{QColor{25, 110, 250, 30}});
     m_focusRect->setPen(QPen{Qt::NoPen});
     m_focusRect->setFlag(QGraphicsItem::ItemIsSelectable, false);
+}
+
+TileItem* MapScene::createTile(qreal x, qreal y,
+                               int tileWidth, int tileHeight,
+                               const QString& textureName,
+                               const QBrush brush)
+{
+    // Warning : When add an item in scene,
+    //           always init with pos(0, 0) and
+    //           then setPos(x, y) on item.
+    //           Because in function add...(), the pos
+    //           represents the draw coordinate, not the items's pos.
+    //           setPos(x, y) set position for drawing and item coordinates
+    qreal width = tileWidth;
+    qreal height = tileHeight;
+    const QRectF boundings{QPointF{0, 0}, QSizeF{width, height}};
+    TileItem *tile = new TileItem{boundings};
+    QPen pen{};
+    pen.setBrush(QBrush{QColor{135, 135, 135}});
+    tile->setPen(pen);
+    tile->setPos(x, y);
+    tile->setName(textureName);
+    tile->setIndex(static_cast<int>(m_tiles.size()));
+    tile->setBrush(brush);
+    m_tilesTexturesNames.push_back(textureName);
+    m_tiles.push_back(tile);
+    addItem(tile);
+    return tile;
 }

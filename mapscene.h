@@ -17,6 +17,7 @@
 #include <QUndoStack>
 #include <QUndoCommand>
 #include <QProgressBar>
+#include <QPainter>
 
 class MapScene : public QGraphicsScene
 {
@@ -75,6 +76,10 @@ private:
     void fillTile(int index);
     void clearAllContainers();
     void createFocusRect(int tileWidth, int tileHeight);
+    TileItem* createTile(qreal x, qreal y,
+                         int tileWidth, int tileHeight,
+                         const QString& textureName = "",
+                         const QBrush brush = QBrush{});
 
 private:
     // std::vector<std::tuple<TileItem*, QString>> ??
