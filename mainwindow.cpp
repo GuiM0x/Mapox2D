@@ -8,19 +8,16 @@ MainWindow::MainWindow(QWidget *parent)
       m_textureList{new TextureList{this}},
       m_undoStack{new QUndoStack{this}}
 {
-    //setCentralWidget(m_centralWidget);
     setCentralWidget(m_mapView);
     setWindowFilePath("Untitled  - Mapox2D");
 
     createActions();
     createMapView();
     createMapScene();
-    //createGridLayout();
     createStatusBar();
     createUndoView();
     createDockWindows();
 
-    //connect(m_addTextureButton, &QPushButton::clicked, this, &MainWindow::openTexture);
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
@@ -169,7 +166,7 @@ void MainWindow::createActions()
     QIcon newIcon{":/icons/newFile.png"};
     QAction *newAct = new QAction{newIcon, tr("&New map"), this};
     newAct->setShortcut(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new map"));
+    //newAct->setStatusTip(tr("Create a new map"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newMap);
     fileMenu->addAction(newAct);
     fileToolBar->addAction(newAct);
@@ -178,7 +175,7 @@ void MainWindow::createActions()
     QIcon openIcon{":/icons/openFile.png"};
     QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open existing file"));
+    //openAct->setStatusTip(tr("Open existing file"));
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
     fileMenu->addAction(openAct);
     fileToolBar->addAction(openAct);
@@ -187,7 +184,7 @@ void MainWindow::createActions()
     QIcon saveIcon{":/icons/saveFile.png"};
     QAction *saveAct = new QAction{saveIcon, tr("&Save"), this};
     saveAct->setShortcut(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save current file"));
+    //saveAct->setStatusTip(tr("Save current file"));
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
     fileMenu->addAction(saveAct);
     fileToolBar->addAction(saveAct);
@@ -195,7 +192,7 @@ void MainWindow::createActions()
     // SAVE AS
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
     saveAsAct->setShortcut(QKeySequence::SaveAs);
-    saveAsAct->setStatusTip(tr("Save current file as..."));
+    //saveAsAct->setStatusTip(tr("Save current file as..."));
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
 
@@ -204,7 +201,7 @@ void MainWindow::createActions()
     // IMPORT TEXTURE
     QIcon importTextureIcon{":/icons/importTexture.png"};
     QAction *importTextureAct = new QAction{importTextureIcon, tr("&Import texture..."), this};
-    importTextureAct->setStatusTip(tr("Import texture from computer"));
+    //importTextureAct->setStatusTip(tr("Import texture from computer"));
     connect(importTextureAct, &QAction::triggered, this, &MainWindow::openTexture);
     fileMenu->addAction(importTextureAct);
     fileToolBar->addAction(importTextureAct);
@@ -214,7 +211,7 @@ void MainWindow::createActions()
     // QUIT
     QAction *quitAct = new QAction{tr("&Quit"), this};
     quitAct->setShortcut(QKeySequence{"Ctrl+Q"});
-    quitAct->setStatusTip(tr("Shutdown Mapox2D"));
+    //quitAct->setStatusTip(tr("Shutdown Mapox2D"));
     connect(quitAct, &QAction::triggered, this, &MainWindow::quit);
     fileMenu->addAction(quitAct);
 
@@ -227,6 +224,7 @@ void MainWindow::createActions()
     QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
     undoAct->setIcon(undoIcon);
     undoAct->setShortcut(QKeySequence::Undo);
+    connect(undoAct, &QAction::triggered, m_mapView, &MapView::undoActTriggered);
     editMenu->addAction(undoAct);
     editToolBar->addAction(undoAct);
 
@@ -244,25 +242,18 @@ void MainWindow::createActions()
     // COPY
     QAction *copyAct = new QAction{tr("Copy"), this};
     copyAct->setShortcut(QKeySequence{"Ctrl+C"});
-    copyAct->setStatusTip(tr("Copy the current selection"));
+    //copyAct->setStatusTip(tr("Copy the current selection"));
     connect(copyAct, &QAction::triggered, m_mapView, &MapView::copyTriggered);
     editMenu->addAction(copyAct);
 
     // PASTE
     QAction *pasteAct = new QAction{tr("Paste"), this};
     pasteAct->setShortcut(QKeySequence{"Ctrl+V"});
-    pasteAct->setStatusTip(tr("Paste from clipboard"));
+    //pasteAct->setStatusTip(tr("Paste from clipboard"));
     connect(pasteAct, &QAction::triggered, m_mapView, &MapView::pasteTriggered);
     editMenu->addAction(pasteAct);
 
     editMenu->addSeparator();
-
-    // FILL SELECTION (OR ALL MAP IF NO SELECTION)
-    QAction *fillSelectionAct = new QAction{tr("F&ill with current texture"), this};
-    fillSelectionAct->setShortcut(QKeySequence{tr("Ctrl+,")});
-    fillSelectionAct->setStatusTip(tr("Fill selected region or all map if no selection"));
-    connect(fillSelectionAct, &QAction::triggered, m_mapView, &MapView::fillSelection);
-    editMenu->addAction(fillSelectionAct);
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
@@ -271,7 +262,7 @@ void MainWindow::createActions()
     // SELECTION
     QIcon selectIcon{":/icons/selection.png"};
     m_selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
-    m_selectAct->setStatusTip(tr("Rectangular selection"));
+    //m_selectAct->setStatusTip(tr("Rectangular selection"));
     m_selectAct->setCheckable(true);
     connect(m_selectAct, &QAction::triggered, this, &MainWindow::selectToolTriggered);
     toolsMenu->addAction(m_selectAct);
@@ -280,27 +271,48 @@ void MainWindow::createActions()
     // MOVE SELECTION
     QIcon moveSelectionIcon{":/icons/moveSelection.png"};
     m_moveSelectionAct = new QAction{moveSelectionIcon, tr("&Move Selection Tool"), this};
-    m_moveSelectionAct->setStatusTip(tr("Move current selection"));
+    //m_moveSelectionAct->setStatusTip(tr("Move current selection"));
     m_moveSelectionAct->setCheckable(true);
     connect(m_moveSelectionAct, &QAction::triggered, this, &MainWindow::moveSelectionToolTriggered);
     toolsMenu->addAction(m_moveSelectionAct);
     toolsToolBar->addAction(m_moveSelectionAct);
 
-    // FILL TILE
+    // BRUSH TILE
     QIcon brushTileIcon{":/icons/brushTile.png"};
     m_brushTileAct = new QAction{brushTileIcon, tr("&Brush Tile Tool"), this};
-    m_brushTileAct->setStatusTip(tr("Fill a tile with texture selected in list"));
+    //m_brushTileAct->setStatusTip(tr("Fill a tile with texture selected in list"));
     m_brushTileAct->setCheckable(true);
     connect(m_brushTileAct, &QAction::triggered, this, &MainWindow::brushTileToolTriggered);
     toolsMenu->addAction(m_brushTileAct);
+    toolsMenu->addSeparator();
     toolsToolBar->addAction(m_brushTileAct);
+    toolsToolBar->addSeparator();
+
+    // FILL SELECTION (OR ALL MAP IF NO SELECTION)
+    QIcon fillSelectionIcon{":/icons/fill.png"};
+    QAction *fillSelectionAct = new QAction{fillSelectionIcon, tr("F&ill with current texture"), this};
+    fillSelectionAct->setShortcut(QKeySequence{tr("Ctrl+,")});
+    //fillSelectionAct->setStatusTip(tr("Fill selected region or all map if no selection"));
+    connect(fillSelectionAct, &QAction::triggered, m_mapView, &MapView::fillSelection);
+    toolsMenu->addAction(fillSelectionAct);
+    toolsToolBar->addAction(fillSelectionAct);
+
+    // ANCHOR PASTED SELECTION
+    QIcon anchorIcon{":/icons/anchor.png"};
+    QAction *anchorAct = new QAction{anchorIcon, tr("Anc&hor pasted selection"), this};
+    //anchorAct->setStatusTip(tr("Anchor the selection previously pasted"));
+    anchorAct->setDisabled(true);
+    connect(anchorAct, &QAction::triggered, m_mapView, &MapView::anchorSelection);
+    connect(m_mapView, &MapView::activeAnchorAct, anchorAct, &QAction::setEnabled);
+    toolsMenu->addAction(anchorAct);
+    toolsToolBar->addAction(anchorAct);
 
     /////////////////////// HELP MENU
     QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
 
     // ABOUT
     QAction *aboutAct = new QAction{tr("&About"), this};
-    aboutAct->setStatusTip(tr("About this software"));
+    //aboutAct->setStatusTip(tr("About this software"));
     connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
     helpMenu->addAction(aboutAct);
 }
@@ -312,6 +324,7 @@ void MainWindow::createMapView()
     m_mapView->setMinimumHeight(360);
     m_mapView->setBackgroundBrush(QBrush{QColor{100, 100, 100}});
     m_mapView->setCacheMode(QGraphicsView::CacheBackground);
+    m_mapView->holdStatusBar(statusBar());
     m_mapView->holdUndoStack(m_undoStack);
 }
 
@@ -343,17 +356,6 @@ void MainWindow::createMapScene(std::map<QString, int>& values)
                              values["totalCols"]);
     m_mapView->reset(m_mapScene->itemsBoundingRect());
 }
-
-/*void MainWindow::createGridLayout()
-{
-    QGridLayout *centralGridLayout = new QGridLayout{};
-    centralGridLayout->addWidget(m_mapView, 0, 0, 2, 1);
-    centralGridLayout->addWidget(m_addTextureButton, 0, 1);
-    m_addTextureButton->setFixedWidth(300);
-    centralGridLayout->addWidget(m_textureList, 1, 1);
-    m_textureList->setFixedWidth(300);
-    m_centralWidget->setLayout(centralGridLayout);
-}*/
 
 void MainWindow::createStatusBar()
 {
@@ -390,7 +392,7 @@ void MainWindow::createDockWindows()
     dockUndoView->setWidget(m_undoView);
     dockUndoView->setMinimumWidth(minWidth);
     dockUndoView->setMaximumWidth(maxWidth);
-    addDockWidget(Qt::RightDockWidgetArea, dockUndoView);
+    addDockWidget(Qt::LeftDockWidgetArea, dockUndoView);
     m_viewMenu->addAction(dockUndoView->toggleViewAction());
 }
 
@@ -423,7 +425,6 @@ bool MainWindow::saveFile(const QString &fileName)
     setCurrentFile(fileName);
     statusBar()->showMessage("Map saved", 3000);
     m_documentModified = false;
-    qDebug() << "MainWindow::saveFile(...) : m_documentModified = false";
 
     return true;
 }
@@ -449,5 +450,4 @@ void MainWindow::loadFile(const QString& fileName)
     statusBar()->showMessage(tr("Map loaded"), 3000);
 
     m_documentModified = false;
-    qDebug() << "MainWindow::loadFile(...) : m_documentModified = false";
 }

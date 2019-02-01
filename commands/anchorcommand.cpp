@@ -19,6 +19,11 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
 void AnchorCommand::undo()
 {
     m_pastedTiles->clear();
+    for(const auto& it : m_firstAnchorPos){
+        auto item = std::get<0>(it);
+        QPointF pos = std::get<1>(it);
+        item->setPos(pos);
+    }
     for(const auto& item : m_removedPastedTiles){
         auto removedPastedItem = std::get<0>(item);
         m_pastedTiles->push_back(removedPastedItem);

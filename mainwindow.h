@@ -60,7 +60,6 @@ private:
     void createMapView();
     void createMapScene();
     void createMapScene(std::map<QString, int>& values);
-    //void createGridLayout();
     void createStatusBar();
     void createUndoView();
     void createDockWindows();

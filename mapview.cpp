@@ -13,6 +13,11 @@ void MapView::holdUndoStack(QUndoStack *undoStack)
     m_undoStack = undoStack;
 }
 
+void MapView::holdStatusBar(QStatusBar *statusBar)
+{
+    m_statusBar = statusBar;
+}
+
 void MapView::reset(const QRectF& mapSceneBounding)
 {
     setSceneRect(mapSceneBounding);
@@ -141,6 +146,7 @@ void MapView::pasteTriggered()
         auto mapScene = static_cast<MapScene*>(scene());
         QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_pastedItems};
         m_undoStack->push(pasteCommand);
+        emit activeAnchorAct(true);
     }
 }
 
@@ -169,6 +175,23 @@ void MapView::fillSelection()
                                                                       textureSelectedInList,
                                                                       m_originalItemsSelected};
         m_undoStack->push(fillSelectionCommand);
+    } else {
+        if(m_statusBar != nullptr)
+            m_statusBar->showMessage("Cannot fill tile - No texture selected in list !", 3000);
+    }
+}
+
+void MapView::anchorSelection()
+{
+    if(canAnchor()){
+        anchorSelection();
+    }
+}
+
+void MapView::undoActTriggered(bool trigger)
+{
+    if(trigger){
+        emit activeAnchorAct(canAnchor());
     }
 }
 
@@ -364,7 +387,7 @@ bool MapView::canDragPastedSelection() const
     return false;
 }
 
-bool MapView::canAnchor() const
+bool MapView::canAnchor()
 {
     if(m_moveSelectionToolActived && !m_pastedItems.empty()){
         const auto mapScene = static_cast<MapScene*>(scene());
@@ -374,9 +397,11 @@ bool MapView::canAnchor() const
                 mousePos.x() >= copiedSelectionRect.x() + copiedSelectionRect.width() ||
                 mousePos.y() < copiedSelectionRect.y() ||
                 mousePos.y() >= copiedSelectionRect.y() + copiedSelectionRect.height()){
+            emit activeAnchorAct(true);
             return true;
         }
     }
+    emit activeAnchorAct(false);
     return false;
 }
 
@@ -441,4 +466,5 @@ void MapView::anchorPastedSelection()
     auto mapScene = static_cast<MapScene*>(scene());
     QUndoCommand *anchorCommand = new AnchorCommand{mapScene, &m_pastedItems};
     m_undoStack->push(anchorCommand);
+    emit activeAnchorAct(false);
 }

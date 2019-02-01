@@ -33,11 +33,13 @@ public:
     MapView(QWidget *parent = nullptr);
 
 public:
+    void holdStatusBar(QStatusBar *statusBar);
     void holdUndoStack(QUndoStack *undoStack);
     void reset(const QRectF& mapSceneBounding = QRectF{});
 
 signals:
     void checkTool(ToolType type = ToolType::NoTool);
+    void activeAnchorAct(bool actived);
 
 public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
@@ -50,6 +52,8 @@ public slots:
     void pasteTriggered();
     void itemFocusChanged();
     void fillSelection();
+    void anchorSelection();
+    void undoActTriggered(bool trigger);
 
 private:
     void focusOutEvent(QFocusEvent *event) override;
@@ -68,7 +72,7 @@ private:
     TileItem* copyTile(TileItem *itemToCopy);
     QRectF pastedSelectionBoundingRect() const;
     bool canDragPastedSelection() const;
-    bool canAnchor() const;
+    bool canAnchor();
     void adjustFocusRectPastedSelectionDragging();
     void adjustPastedSelectionPosEndDrag();
     void movePastedSelection();
@@ -77,6 +81,7 @@ private:
 private:
     std::map<std::string, bool> m_keysState{};
     double                      m_zoomFactor{1.0};
+    QStatusBar                 *m_statusBar{nullptr};
     QUndoStack                 *m_undoStack{nullptr};
     ItemsSelected               m_originalItemsSelected{};
     ItemsCopied                 m_copiedItems{};

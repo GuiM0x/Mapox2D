@@ -12,5 +12,6 @@
         <file>icons/anchor.png</file>
         <file>icons/anchorCursor.png</file>
         <file>icons/importTexture.png</file>
+        <file>icons/fill.png</file>
     </qresource>
 </RCC>
