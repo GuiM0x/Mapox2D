@@ -1,6 +1,7 @@
 #include "deletetilecommand.h"
 
-DeleteTileCommand::DeleteTileCommand(MapScene* mapScene, QUndoCommand *parent)
+DeleteTileCommand::DeleteTileCommand(MapScene* mapScene,
+                                     QUndoCommand *parent)
     : QUndoCommand{parent}
 {
     m_mapScene = mapScene;

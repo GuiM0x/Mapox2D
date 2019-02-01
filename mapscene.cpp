@@ -203,6 +203,7 @@ QGraphicsRectItem* MapScene::focusRect()
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->text();
+    emit triggerTool(true, ToolType::Brush);
 }
 
 void MapScene::itemFocusChanged()

@@ -8,7 +8,8 @@
 class DeleteTileCommand : public QUndoCommand
 {
 public:
-    explicit DeleteTileCommand(MapScene* mapScene, QUndoCommand *parent = nullptr);
+    explicit DeleteTileCommand(MapScene* mapScene,
+                               QUndoCommand *parent = nullptr);
 
 public:
     void undo() override;

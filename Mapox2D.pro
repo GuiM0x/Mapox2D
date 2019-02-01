@@ -39,7 +39,8 @@ SOURCES += \
     tileitem.cpp \
     commands/pastecommand.cpp \
     commands/fillselectioncommand.cpp \
-    commands/anchorcommand.cpp
+    commands/anchorcommand.cpp \
+    commands/deleteselectioncommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -57,7 +58,8 @@ HEADERS += \
     tileitem.h \
     commands/pastecommand.h \
     commands/fillselectioncommand.h \
-    commands/anchorcommand.h
+    commands/anchorcommand.h \
+    commands/deleteselectioncommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

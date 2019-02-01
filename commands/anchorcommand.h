@@ -4,8 +4,6 @@
 #include "mapscene.h"
 #include "tileitem.h"
 
-#include <map>
-
 #include <QUndoCommand>
 #include <QList>
 

@@ -123,26 +123,27 @@ void MapView::toolTriggered(bool trigger, ToolType type)
 
 void MapView::copyTriggered()
 {
-    // Items Selected ?
     if(!m_originalItemsSelected.empty()){
-        if(!m_copiedItems.empty()) m_copiedItems.clear();
-        // Append to copied items List
-        for(const auto& item : m_originalItemsSelected){
-            m_copiedItems.append(copyTile(std::get<0>(item)));
-        }
-        // Sort by original index
-        std::sort(std::begin(m_copiedItems), std::end(m_copiedItems),
-                  [](TileItem *item1, TileItem *item2){
-                        return item1->index() < item2->index();
-                  });
-        // Restore selected items
+        copyItemsSelected();
         restoreOriginalSeletedItem();
+    }
+}
+
+void MapView::cutTriggered()
+{
+    if(!m_originalItemsSelected.empty()){
+        copyItemsSelected();
+        auto mapScene = static_cast<MapScene*>(scene());
+        QUndoCommand *deleteSelectionCommand = new DeleteSelectionCommand{mapScene,
+                                                                          &m_originalItemsSelected};
+        m_undoStack->push(deleteSelectionCommand);
+        deleteSelectionCommand->setText("Selection cutted\ncut selection");
     }
 }
 
 void MapView::pasteTriggered()
 {
-    if(!m_copiedItems.empty()){
+    if(!m_copiedItems.empty() && m_pastedItems.empty()){
         auto mapScene = static_cast<MapScene*>(scene());
         QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_pastedItems};
         m_undoStack->push(pasteCommand);
@@ -219,10 +220,16 @@ void MapView::keyPressEvent(QKeyEvent *event)
     // DELETE A TILE
     if(event->key() == Qt::Key_Delete){
         auto mapScene = static_cast<MapScene*>(scene());
-        int index = mapScene->currentTile();
-        if(mapScene->canDeleteTile(index)){
-            QUndoCommand *deleteCommand = new DeleteTileCommand{mapScene};
-            m_undoStack->push(deleteCommand);
+        if(!m_originalItemsSelected.empty()){
+            QUndoCommand *deleteSelectionCommand = new DeleteSelectionCommand{mapScene,
+                                                                              &m_originalItemsSelected};
+            m_undoStack->push(deleteSelectionCommand);
+        } else {
+            int index = mapScene->currentTile();
+            if(mapScene->canDeleteTile(index)){
+                QUndoCommand *deleteCommand = new DeleteTileCommand{mapScene};
+                m_undoStack->push(deleteCommand);
+            }
         }
     }
 }
@@ -467,4 +474,18 @@ void MapView::anchorPastedSelection()
     QUndoCommand *anchorCommand = new AnchorCommand{mapScene, &m_pastedItems};
     m_undoStack->push(anchorCommand);
     emit activeAnchorAct(false);
+}
+
+void MapView::copyItemsSelected()
+{
+    if(!m_copiedItems.empty()) m_copiedItems.clear();
+
+    for(const auto& item : m_originalItemsSelected){
+        m_copiedItems.append(copyTile(std::get<0>(item)));
+    }
+
+    std::sort(std::begin(m_copiedItems), std::end(m_copiedItems),
+              [](TileItem *item1, TileItem *item2){
+                    return item1->index() < item2->index();
+              });
 }

@@ -8,6 +8,7 @@
 #include "commands/pastecommand.h"
 #include "commands/fillselectioncommand.h"
 #include "commands/anchorcommand.h"
+#include "commands/deleteselectioncommand.h"
 #include "tools/utilitytools.h"
 
 #include <map>
@@ -49,6 +50,7 @@ public slots:
     void rubberChanged(const QRect& rubberBandRect);
     void toolTriggered(bool trigger, ToolType type);
     void copyTriggered();
+    void cutTriggered();
     void pasteTriggered();
     void itemFocusChanged();
     void fillSelection();
@@ -77,6 +79,7 @@ private:
     void adjustPastedSelectionPosEndDrag();
     void movePastedSelection();
     void anchorPastedSelection();
+    void copyItemsSelected();
 
 private:
     std::map<std::string, bool> m_keysState{};

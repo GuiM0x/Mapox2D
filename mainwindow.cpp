@@ -166,7 +166,6 @@ void MainWindow::createActions()
     QIcon newIcon{":/icons/newFile.png"};
     QAction *newAct = new QAction{newIcon, tr("&New map"), this};
     newAct->setShortcut(QKeySequence::New);
-    //newAct->setStatusTip(tr("Create a new map"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newMap);
     fileMenu->addAction(newAct);
     fileToolBar->addAction(newAct);
@@ -175,7 +174,6 @@ void MainWindow::createActions()
     QIcon openIcon{":/icons/openFile.png"};
     QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
-    //openAct->setStatusTip(tr("Open existing file"));
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
     fileMenu->addAction(openAct);
     fileToolBar->addAction(openAct);
@@ -184,7 +182,6 @@ void MainWindow::createActions()
     QIcon saveIcon{":/icons/saveFile.png"};
     QAction *saveAct = new QAction{saveIcon, tr("&Save"), this};
     saveAct->setShortcut(QKeySequence::Save);
-    //saveAct->setStatusTip(tr("Save current file"));
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
     fileMenu->addAction(saveAct);
     fileToolBar->addAction(saveAct);
@@ -192,7 +189,6 @@ void MainWindow::createActions()
     // SAVE AS
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
     saveAsAct->setShortcut(QKeySequence::SaveAs);
-    //saveAsAct->setStatusTip(tr("Save current file as..."));
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
 
@@ -201,7 +197,6 @@ void MainWindow::createActions()
     // IMPORT TEXTURE
     QIcon importTextureIcon{":/icons/importTexture.png"};
     QAction *importTextureAct = new QAction{importTextureIcon, tr("&Import texture..."), this};
-    //importTextureAct->setStatusTip(tr("Import texture from computer"));
     connect(importTextureAct, &QAction::triggered, this, &MainWindow::openTexture);
     fileMenu->addAction(importTextureAct);
     fileToolBar->addAction(importTextureAct);
@@ -211,7 +206,6 @@ void MainWindow::createActions()
     // QUIT
     QAction *quitAct = new QAction{tr("&Quit"), this};
     quitAct->setShortcut(QKeySequence{"Ctrl+Q"});
-    //quitAct->setStatusTip(tr("Shutdown Mapox2D"));
     connect(quitAct, &QAction::triggered, this, &MainWindow::quit);
     fileMenu->addAction(quitAct);
 
@@ -240,16 +234,20 @@ void MainWindow::createActions()
     editMenu->addSeparator();
 
     // COPY
-    QAction *copyAct = new QAction{tr("Copy"), this};
+    QAction *copyAct = new QAction{tr("Copy Selection"), this};
     copyAct->setShortcut(QKeySequence{"Ctrl+C"});
-    //copyAct->setStatusTip(tr("Copy the current selection"));
     connect(copyAct, &QAction::triggered, m_mapView, &MapView::copyTriggered);
     editMenu->addAction(copyAct);
 
+    // CUT
+    QAction *cutAct = new QAction{tr("Cut Selection"), this};
+    cutAct->setShortcut(QKeySequence{"Ctrl+X"});
+    connect(cutAct, &QAction::triggered, m_mapView, &MapView::cutTriggered);
+    editMenu->addAction(cutAct);
+
     // PASTE
-    QAction *pasteAct = new QAction{tr("Paste"), this};
+    QAction *pasteAct = new QAction{tr("Paste Selection"), this};
     pasteAct->setShortcut(QKeySequence{"Ctrl+V"});
-    //pasteAct->setStatusTip(tr("Paste from clipboard"));
     connect(pasteAct, &QAction::triggered, m_mapView, &MapView::pasteTriggered);
     editMenu->addAction(pasteAct);
 
@@ -262,7 +260,6 @@ void MainWindow::createActions()
     // SELECTION
     QIcon selectIcon{":/icons/selection.png"};
     m_selectAct = new QAction{selectIcon, tr("&Selection Tool"), this};
-    //m_selectAct->setStatusTip(tr("Rectangular selection"));
     m_selectAct->setCheckable(true);
     connect(m_selectAct, &QAction::triggered, this, &MainWindow::selectToolTriggered);
     toolsMenu->addAction(m_selectAct);
@@ -271,7 +268,6 @@ void MainWindow::createActions()
     // MOVE SELECTION
     QIcon moveSelectionIcon{":/icons/moveSelection.png"};
     m_moveSelectionAct = new QAction{moveSelectionIcon, tr("&Move Selection Tool"), this};
-    //m_moveSelectionAct->setStatusTip(tr("Move current selection"));
     m_moveSelectionAct->setCheckable(true);
     connect(m_moveSelectionAct, &QAction::triggered, this, &MainWindow::moveSelectionToolTriggered);
     toolsMenu->addAction(m_moveSelectionAct);
@@ -280,7 +276,6 @@ void MainWindow::createActions()
     // BRUSH TILE
     QIcon brushTileIcon{":/icons/brushTile.png"};
     m_brushTileAct = new QAction{brushTileIcon, tr("&Brush Tile Tool"), this};
-    //m_brushTileAct->setStatusTip(tr("Fill a tile with texture selected in list"));
     m_brushTileAct->setCheckable(true);
     connect(m_brushTileAct, &QAction::triggered, this, &MainWindow::brushTileToolTriggered);
     toolsMenu->addAction(m_brushTileAct);
@@ -292,7 +287,6 @@ void MainWindow::createActions()
     QIcon fillSelectionIcon{":/icons/fill.png"};
     QAction *fillSelectionAct = new QAction{fillSelectionIcon, tr("F&ill with current texture"), this};
     fillSelectionAct->setShortcut(QKeySequence{tr("Ctrl+,")});
-    //fillSelectionAct->setStatusTip(tr("Fill selected region or all map if no selection"));
     connect(fillSelectionAct, &QAction::triggered, m_mapView, &MapView::fillSelection);
     toolsMenu->addAction(fillSelectionAct);
     toolsToolBar->addAction(fillSelectionAct);
@@ -300,7 +294,6 @@ void MainWindow::createActions()
     // ANCHOR PASTED SELECTION
     QIcon anchorIcon{":/icons/anchor.png"};
     QAction *anchorAct = new QAction{anchorIcon, tr("Anc&hor pasted selection"), this};
-    //anchorAct->setStatusTip(tr("Anchor the selection previously pasted"));
     anchorAct->setDisabled(true);
     connect(anchorAct, &QAction::triggered, m_mapView, &MapView::anchorSelection);
     connect(m_mapView, &MapView::activeAnchorAct, anchorAct, &QAction::setEnabled);
@@ -312,7 +305,6 @@ void MainWindow::createActions()
 
     // ABOUT
     QAction *aboutAct = new QAction{tr("&About"), this};
-    //aboutAct->setStatusTip(tr("About this software"));
     connect(aboutAct, &QAction::triggered, this, &MainWindow::about);
     helpMenu->addAction(aboutAct);
 }
