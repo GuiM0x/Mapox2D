@@ -9,23 +9,48 @@ TextureList::TextureList(QWidget *parent)
 void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
 {
     const QString cuttedFileName = StringTools::cutFileName(fileName);
-    const QString cuttedExtension = StringTools::cutExtensionFileName(cuttedFileName);
+    const QString textureName = StringTools::cutExtensionFileName(cuttedFileName);
 
-    if(!textureAlreadyExists(cuttedExtension)){
-        m_texturesPaths[cuttedExtension] = fileName;
+    if(!textureAlreadyExists(textureName)){
         QPixmap texture{fileName};
         if(fileName.isEmpty())
             throw(std::runtime_error{"TextureList::addTexture() - filename empty - "});
         if(texture.isNull())
             throw(std::runtime_error{"TextureList::addTexture() - texture null - " + fileName.toStdString()});
-        m_textures[cuttedExtension] = texture;
+        m_textures[textureName] = texture;
         QPixmap scaledTexture = texture.scaled(iconSize());
         QIcon icon{scaledTexture};
-        QListWidgetItem *item = new QListWidgetItem{icon, cuttedExtension};
+        QListWidgetItem *item = new QListWidgetItem{icon, textureName};
         addItem(item);
         if(!fromLoadFile)
             emit docModified();
     }
+}
+
+void TextureList::addTexture(const QList<QPixmap>& textures, const QString& fileName)
+{
+    const QString cuttedFileName = StringTools::cutFileName(fileName);
+    const QString cuttedExtension = StringTools::cutExtensionFileName(cuttedFileName);
+
+    bool good{true};
+
+    for(int i = 0; i < textures.size(); ++i){
+        const QString textureName = cuttedExtension + "(" + QString::number(i) + ")";
+        if(!textureAlreadyExists(textureName)){
+            const QPixmap texture = textures[i];
+            m_textures[textureName] = texture;
+            QPixmap scaledTexture = texture.scaled(iconSize());
+            QIcon icon{scaledTexture};
+            QListWidgetItem *item = new QListWidgetItem{icon, textureName};
+            addItem(item);
+        } else {
+            good = false;
+            break;
+        }
+    }
+
+    if(good)
+        emit docModified();
 }
 
 QPixmap TextureList::getTexture(const QString &textureName)
@@ -44,7 +69,6 @@ void TextureList::clean()
 {
     clear();
     m_textures.clear();
-    m_texturesPaths.clear();
 }
 
 bool TextureList::textureAlreadyExists(const QString &fileName)

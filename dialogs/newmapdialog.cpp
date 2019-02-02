@@ -7,7 +7,7 @@ NewMapDialog::NewMapDialog(QWidget *parent)
     createForm();
 }
 
-std::map<QString, int> NewMapDialog::processDial()
+std::map<NewMapDialog::FieldType, int> NewMapDialog::processDial()
 {
     QLabel *invalidFieldInfo = new QLabel{this};
     // Exec dialog while input are not valid except if dial is canceled
@@ -15,72 +15,111 @@ std::map<QString, int> NewMapDialog::processDial()
         exec();
         if(!validInput() && result() == QDialog::Accepted){
             if(invalidFieldInfo->text().isEmpty()){
-                invalidFieldInfo->setText(tr("A field cannot be empty !"));
+                invalidFieldInfo->setText(tr("A field cannot be equal to 0 !"));
                 m_form.addRow(invalidFieldInfo);
             }
         }
     }while(!validInput() && result() == QDialog::Accepted);
 
 
-    std::map<QString, int> values{};
+    std::map<FieldType, int> values{};
     // Ok, we can process if all input are good and user say Ok
     if(result() == QDialog::Accepted){
         for(auto it = std::begin(m_fields); it != std::end(m_fields); ++it){
-            values[it->first] = it->second->text().toInt();
+            values[it->first] = it->second->value();
         }
     }
     return values;
 }
 
-void NewMapDialog::textHasBeenEdited(const QString& text)
-{
-    if(text.toInt() > m_validatorCount.top()){
-        if(m_fields["totalCols"]->text() == text)
-            m_fields["totalCols"]->setText(QString::number(m_validatorCount.top()));
-        else if(m_fields["totalRows"]->text() == text)
-            m_fields["totalRows"]->setText(QString::number(m_validatorCount.top()));
-    }
-}
-
 void NewMapDialog::createForm()
 {
-    QLineEdit *lineEditTileWidth = new QLineEdit{this};
-    lineEditTileWidth->setValidator(&m_validatorSizeTile);
-    m_form.addRow(QString{tr("Tile Width : ")}, lineEditTileWidth);
-    m_fields["tileWidth"] = lineEditTileWidth;
+    createSizeOptionBox();
+    createRowColOptionBox();
 
-    QLineEdit *lineEditTileHeight = new QLineEdit{this};
-    lineEditTileHeight->setValidator(&m_validatorSizeTile);
-    m_form.addRow(QString{tr("Tile Height : ")}, lineEditTileHeight);
-    m_fields["tileHeight"] = lineEditTileHeight;
+    QVBoxLayout *vLayout = new QVBoxLayout{};
+    vLayout->addWidget(m_sizeGroupBox);
+    vLayout->addWidget(m_rowColGroupBox);
+    vLayout->setAlignment(Qt::AlignVCenter);
 
-    QLineEdit *lineEditTotalRows = new QLineEdit{this};
-    lineEditTotalRows->setValidator(&m_validatorCount);
-    m_form.addRow(QString{tr("Total  Rows : ")}, lineEditTotalRows);
-    m_fields["totalRows"] = lineEditTotalRows;
-    connect(lineEditTotalRows, &QLineEdit::textEdited, this, &NewMapDialog::textHasBeenEdited);
-
-    QLineEdit *lineEditTotalCols = new QLineEdit{this};
-    lineEditTotalCols->setValidator(&m_validatorCount);
-    m_form.addRow(QString{tr("Total  Cols : ")}, lineEditTotalCols);
-    m_fields["totalCols"] = lineEditTotalCols;
-    connect(lineEditTotalCols, &QLineEdit::textEdited, this, &NewMapDialog::textHasBeenEdited);
+    m_form.addRow(vLayout);
 
     QDialogButtonBox *buttonBox = new QDialogButtonBox{QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
                                Qt::Horizontal, this};
-    m_form.addRow(buttonBox);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
+
+    m_form.addRow(buttonBox);
 }
 
 bool NewMapDialog::validInput()
 {
     bool valid{true};
     for(auto it = std::begin(m_fields); it != std::end(m_fields); ++it){
-        if(it->second->text().isEmpty()){
+        if(it->second->value() == 0){
             valid = false;
             break;
         }
     }
     return valid;
+}
+
+void NewMapDialog::createSizeOptionBox()
+{
+    // CREATE WIDTH SPIN BOX
+    m_spinBoxWidth = new QSpinBox{this};
+    m_spinBoxWidth->setRange(1, 500);
+    m_fields[FieldType::Width] = m_spinBoxWidth;
+    QLabel *labelWidth = new QLabel{"Width", this};
+    QHBoxLayout *labelSpinWidthLayout = new QHBoxLayout{};
+    labelSpinWidthLayout->addWidget(labelWidth);
+    labelSpinWidthLayout->addWidget(m_spinBoxWidth);
+
+    // CREATE HEIGHT SPIN BOX
+    m_spinBoxHeight = new QSpinBox{this};
+    m_spinBoxHeight->setRange(1, 500);
+    m_fields[FieldType::Height] = m_spinBoxHeight;
+    QLabel *labelHeight = new QLabel{"Height", this};
+    QHBoxLayout *labelSpinHeightLayout = new QHBoxLayout{};
+    labelSpinHeightLayout->addWidget(labelHeight);
+    labelSpinHeightLayout->addWidget(m_spinBoxHeight);
+
+    // CREATE LAYOUT FOR SPIN BOX
+    QVBoxLayout *vboxSize = new QVBoxLayout{};
+    vboxSize->addLayout(labelSpinWidthLayout);
+    vboxSize->addLayout(labelSpinHeightLayout);
+
+    // CREATE GROUP BOX FOR LAYOUT
+    m_sizeGroupBox = new QGroupBox{tr("Tile size : "), this};
+    m_sizeGroupBox->setLayout(vboxSize);
+}
+
+void NewMapDialog::createRowColOptionBox()
+{
+    // CREATE ROWS SPIN BOX
+    m_spinBoxRows = new QSpinBox{this};
+    m_spinBoxRows->setRange(1, 999);
+    m_fields[FieldType::Rows] = m_spinBoxRows;
+    QLabel *labelRows = new QLabel{"Rows", this};
+    QHBoxLayout *labelSpinRowLayout = new QHBoxLayout{};
+    labelSpinRowLayout->addWidget(labelRows);
+    labelSpinRowLayout->addWidget(m_spinBoxRows);
+
+    // CREATE COLS SPIN BOX
+    m_spinBoxCols = new QSpinBox{this};
+    m_spinBoxCols->setRange(1, 999);
+    m_fields[FieldType::Cols] = m_spinBoxCols;
+    QLabel *labelCols = new QLabel{"Cols", this};
+    QHBoxLayout *labelSpinColLayout = new QHBoxLayout{};
+    labelSpinColLayout->addWidget(labelCols);
+    labelSpinColLayout->addWidget(m_spinBoxCols);
+
+    // CREATE LAYOUT FOR SPIN BOX
+    QVBoxLayout *vboxrowCol = new QVBoxLayout{};
+    vboxrowCol->addLayout(labelSpinRowLayout);
+    vboxrowCol->addLayout(labelSpinColLayout);
+
+    // CREATE GROUP BOX FOR LAYOUT
+    m_rowColGroupBox = new QGroupBox{tr("Tile Number : "), this};
+    m_rowColGroupBox->setLayout(vboxrowCol);
 }

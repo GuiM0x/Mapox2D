@@ -41,7 +41,7 @@ void DataSaver::textureToAppData(const QString& fileName)
             QPixmap texture = it->second;
             // Correct a bug when no textures was in list and empty name file was created
             if(!texture.isNull()){
-                QString newFileName = path.path() + "/" + StringTools::cutExtensionFileName(it->first) + ".dat";
+                QString newFileName = path.path() + "/" + it->first + ".dat";
                 m_texturesNewPath.push_back(newFileName);
                 QFile file{newFileName};
                 file.open(QIODevice::WriteOnly);

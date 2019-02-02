@@ -91,7 +91,7 @@ bool MainWindow::saveAs()
 
 void MainWindow::docWasModified()
 {
-    qDebug() << "Document modified";
+    qDebug() << "MainWindow::docWasModified - Document modified";
     m_documentModified = true;
 }
 
@@ -106,7 +106,7 @@ void MainWindow::about()
 void MainWindow::openTexture()
 {
     const QStringList fileNames = QFileDialog::getOpenFileNames(
-                                      this, tr("Select one or more files to open"), "",
+                                      this, tr("Select one or more textures to open"), "",
                                       tr("Images (*.png *.jpg *.bmp)"));
     for(const auto& name : fileNames){
         if(!name.isEmpty())
@@ -117,17 +117,14 @@ void MainWindow::openTexture()
 void MainWindow::openSpriteSheet()
 {
     const QString fileName = QFileDialog::getOpenFileName(
-                                      this, tr("Select one file to open"), "",
+                                      this, tr("Select Sprite Sheet to open"), "",
                                       tr("Images (*.png *.jpg *.bmp)"));
-    qDebug() << "MainWindow::openSpriteSheet fileName : " << fileName;
+    const QPixmap spriteSheet{fileName};
 
-    QPixmap spriteSheet{fileName};
-    assert(!spriteSheet.isNull());
-
-    ImportSpriteSheetDialog dial{spriteSheet, this};
-    std::map<FieldType, int> result = dial.processDial();
-    for(const auto& it : result){
-        qDebug() << it.second;
+    if(!spriteSheet.isNull()){
+        ImportSpriteSheetDialog dial{spriteSheet, this};
+        const QList<QPixmap> result = dial.processDial();
+        m_textureList->addTexture(result, fileName);
     }
 }
 
@@ -170,6 +167,20 @@ void MainWindow::checkedTool(ToolType type)
         break;
     case ToolType::NoTool :
         break;
+    }
+}
+
+void MainWindow::replaceTextureList(bool replace)
+{
+    if(replace){
+        m_dockTextureList->setFloating(false);
+    }
+}
+
+void MainWindow::replaceUndoView(bool replace)
+{
+    if(replace){
+        m_dockUndoView->setFloating(false);
     }
 }
 
@@ -354,22 +365,22 @@ void MainWindow::createMapScene()
     connect(m_mapScene, &MapScene::itemFocusChange,
             m_mapView, &MapView::itemFocusChanged);
 
-    std::map<QString, int> defaultMap{};
-    defaultMap["tileWidth"]  = 32;
-    defaultMap["tileHeight"] = 32;
-    defaultMap["totalRows"]  = 6;
-    defaultMap["totalCols"]  = 6;
+    std::map<NewMapDialog::FieldType, int> defaultMap{};
+    defaultMap[NewMapDialog::FieldType::Width]  = 32;
+    defaultMap[NewMapDialog::FieldType::Height] = 32;
+    defaultMap[NewMapDialog::FieldType::Rows]   = 6;
+    defaultMap[NewMapDialog::FieldType::Cols]   = 6;
     createMapScene(defaultMap);
 }
 
-void MainWindow::createMapScene(std::map<QString, int>& values)
+void MainWindow::createMapScene(std::map<NewMapDialog::FieldType, int>& values)
 {
     m_documentModified = false;
     m_mapView->reset();
-    m_mapScene->createMatrix(values["tileWidth"],
-                             values["tileHeight"],
-                             values["totalRows"],
-                             values["totalCols"]);
+    m_mapScene->createMatrix(values[NewMapDialog::FieldType::Width],
+                             values[NewMapDialog::FieldType::Height],
+                             values[NewMapDialog::FieldType::Rows],
+                             values[NewMapDialog::FieldType::Cols]);
     m_mapView->reset(m_mapScene->itemsBoundingRect());
 }
 
@@ -395,21 +406,26 @@ void MainWindow::createDockWindows()
     const int minWidth{200};
     const int maxWidth{300};
 
-    QDockWidget *dockTextureList = new QDockWidget{tr("Texture List"), this};
-    dockTextureList->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    dockTextureList->setWidget(m_textureList);
-    dockTextureList->setMinimumWidth(minWidth);
-    dockTextureList->setMaximumWidth(maxWidth);
-    addDockWidget(Qt::RightDockWidgetArea, dockTextureList);
-    m_viewMenu->addAction(dockTextureList->toggleViewAction());
+    m_dockTextureList = new QDockWidget{tr("Texture List"), this};
+    m_dockTextureList->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    m_dockTextureList->setWidget(m_textureList);
+    m_dockTextureList->setMinimumWidth(minWidth);
+    m_dockTextureList->setMaximumWidth(maxWidth);
+    addDockWidget(Qt::RightDockWidgetArea, m_dockTextureList);
+    QAction *viewTextureListAct = m_dockTextureList->toggleViewAction();
+    m_viewMenu->addAction(viewTextureListAct);
+    connect(viewTextureListAct, &QAction::triggered, this, &MainWindow::replaceTextureList);
 
-    QDockWidget *dockUndoView = new QDockWidget{tr("Command List"), this};
-    dockUndoView->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    dockUndoView->setWidget(m_undoView);
-    dockUndoView->setMinimumWidth(minWidth);
-    dockUndoView->setMaximumWidth(maxWidth);
-    addDockWidget(Qt::LeftDockWidgetArea, dockUndoView);
-    m_viewMenu->addAction(dockUndoView->toggleViewAction());
+    m_dockUndoView = new QDockWidget{tr("Command List"), this};
+    m_dockUndoView->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+    m_dockUndoView->setWidget(m_undoView);
+    m_dockUndoView->setMinimumWidth(minWidth);
+    m_dockUndoView->setMaximumWidth(maxWidth);
+    m_dockUndoView->setFloating(false);
+    addDockWidget(Qt::LeftDockWidgetArea, m_dockUndoView);
+    QAction *viewCommandListAct = m_dockUndoView->toggleViewAction();
+    m_viewMenu->addAction(viewCommandListAct);
+    connect(viewCommandListAct, &QAction::triggered, this, &MainWindow::replaceUndoView);
 }
 
 bool MainWindow::maybeSave()

@@ -9,30 +9,43 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QSpinBox>
+#include <QGroupBox>
 
 class NewMapDialog : public QDialog
 {
     Q_OBJECT
 
 public:
+    enum class FieldType{
+        Width,
+        Height,
+        Rows,
+        Cols
+    };
+
+public:
     NewMapDialog(QWidget *parent = nullptr);
 
 public:
-    std::map<QString, int> processDial();
-
-private slots:
-    void textHasBeenEdited(const QString& text);
+    std::map<FieldType, int> processDial();
 
 private:
     void createForm();
     void createButtonBox();
     bool validInput();
+    void createSizeOptionBox();
+    void createRowColOptionBox();
 
 private:
-    QIntValidator                 m_validatorSizeTile{0, 999};
-    QIntValidator                 m_validatorCount{0, 500};
-    QFormLayout                   m_form{this};
-    std::map<QString, QLineEdit*> m_fields{};
+    QFormLayout                     m_form{this};
+    std::map<FieldType, QSpinBox*>  m_fields{};
+    QSpinBox                       *m_spinBoxWidth{nullptr};
+    QSpinBox                       *m_spinBoxHeight{nullptr};
+    QSpinBox                       *m_spinBoxRows{nullptr};
+    QSpinBox                       *m_spinBoxCols{nullptr};
+    QGroupBox                      *m_sizeGroupBox{nullptr};
+    QGroupBox                      *m_rowColGroupBox{nullptr};
 };
 
 #endif // NEWMAPDIALOG_H

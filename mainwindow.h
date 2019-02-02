@@ -56,12 +56,14 @@ private slots:
     void moveSelectionToolTriggered(bool trigger);
     void brushTileToolTriggered(bool trigger);
     void checkedTool(ToolType type = ToolType::NoTool);
+    void replaceTextureList(bool replace);
+    void replaceUndoView(bool replace);
 
 private:
     void createActions();
     void createMapView();
     void createMapScene();
-    void createMapScene(std::map<QString, int>& values);
+    void createMapScene(std::map<NewMapDialog::FieldType, int>& values);
     void createStatusBar();
     void createUndoView();
     void createDockWindows();
@@ -81,12 +83,12 @@ private:
     bool            m_mouseLeftPress{false};
     QString         m_currentFile{};
     bool            m_documentModified{false};
-
     QAction        *m_selectAct{nullptr};
     QAction        *m_moveSelectionAct{nullptr};
     QAction        *m_brushTileAct{nullptr};
-
     QMenu          *m_viewMenu{nullptr}; // View/Hide dock widget
+    QDockWidget    *m_dockTextureList{nullptr};
+    QDockWidget    *m_dockUndoView{nullptr};
 };
 
 #endif // MAINWINDOW_H

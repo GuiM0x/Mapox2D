@@ -20,6 +20,7 @@ signals:
 
 public:
     void addTexture(const QString& fileName, bool fromLoadFile = false);
+    void addTexture(const QList<QPixmap>& textures, const QString& fileName);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();
     void clean();
@@ -29,7 +30,6 @@ private:
 
 private:
     std::map<QString, QPixmap> m_textures{};
-    std::map<QString, QString> m_texturesPaths{};
 };
 
 #endif // TEXTURELIST_H
