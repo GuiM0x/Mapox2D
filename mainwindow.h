@@ -5,6 +5,7 @@
 #include "mapscene.h"
 #include "texturelist.h"
 #include "dialogs/newmapdialog.h"
+#include "dialogs/importspritesheetdialog.h"
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"
 #include "tools/utilitytools.h"
@@ -49,6 +50,7 @@ private slots:
     void docWasModified();
     void about();
     void openTexture();
+    void openSpriteSheet();
     void quit();
     void selectToolTriggered(bool trigger);
     void moveSelectionToolTriggered(bool trigger);

@@ -114,6 +114,23 @@ void MainWindow::openTexture()
     }
 }
 
+void MainWindow::openSpriteSheet()
+{
+    const QString fileName = QFileDialog::getOpenFileName(
+                                      this, tr("Select one file to open"), "",
+                                      tr("Images (*.png *.jpg *.bmp)"));
+    qDebug() << "MainWindow::openSpriteSheet fileName : " << fileName;
+
+    QPixmap spriteSheet{fileName};
+    assert(!spriteSheet.isNull());
+
+    ImportSpriteSheetDialog dial{spriteSheet, this};
+    std::map<FieldType, int> result = dial.processDial();
+    for(const auto& it : result){
+        qDebug() << it.second;
+    }
+}
+
 void MainWindow::quit()
 {
     if(maybeSave())
@@ -200,6 +217,13 @@ void MainWindow::createActions()
     connect(importTextureAct, &QAction::triggered, this, &MainWindow::openTexture);
     fileMenu->addAction(importTextureAct);
     fileToolBar->addAction(importTextureAct);
+
+    // IMPORT SPRITESHEET
+    QIcon importSpriteSheetIcon{":/icons/importSpriteSheet.png"};
+    QAction *importSpriteSheetAct = new QAction{importSpriteSheetIcon, tr("Import sprite sheet..."), this};
+    connect(importSpriteSheetAct, &QAction::triggered, this, &MainWindow::openSpriteSheet);
+    fileMenu->addAction(importSpriteSheetAct);
+    fileToolBar->addAction(importSpriteSheetAct);
 
     fileMenu->addSeparator();
 

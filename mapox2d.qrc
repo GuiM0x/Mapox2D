@@ -13,5 +13,6 @@
         <file>icons/anchorCursor.png</file>
         <file>icons/importTexture.png</file>
         <file>icons/fill.png</file>
+        <file>icons/importSpriteSheet.png</file>
     </qresource>
 </RCC>

@@ -40,7 +40,8 @@ SOURCES += \
     commands/pastecommand.cpp \
     commands/fillselectioncommand.cpp \
     commands/anchorcommand.cpp \
-    commands/deleteselectioncommand.cpp
+    commands/deleteselectioncommand.cpp \
+    dialogs/importspritesheetdialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -59,7 +60,8 @@ HEADERS += \
     commands/pastecommand.h \
     commands/fillselectioncommand.h \
     commands/anchorcommand.h \
-    commands/deleteselectioncommand.h
+    commands/deleteselectioncommand.h \
+    dialogs/importspritesheetdialog.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
