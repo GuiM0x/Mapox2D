@@ -25,7 +25,7 @@ void MapView::reset(const QRectF& mapSceneBounding)
 
     m_originalItemsSelected.clear();
     m_copiedItems.clear();
-    m_pastedItems.clear();
+    m_floatSelection.clear();
     toolTriggered(true, ToolType::Brush);
 }
 
@@ -103,15 +103,13 @@ void MapView::toolTriggered(bool trigger, ToolType type)
         break;
     }
 
-    // IF MOVE TOOL DISABLED AND LAST COMMAND IS "PASTE SELECTION"
-    // -> QUndoStack::undo()
-    // Why ? Because it "remove" copied items and avoids some programming pain
-    if(!m_moveSelectionToolActived && m_undoStack->count() > 0 && !m_pastedItems.empty()){
-        auto lastCommand = m_undoStack->command(m_undoStack->count() - 1);
-        assert(lastCommand != nullptr);
-        if(lastCommand->actionText() == "paste selection"){
-            m_undoStack->undo();
-        }
+    // IF MOVE TOOL DISABLED AND FLOAT SELECTION NOT EMPTY
+    // Command -> Discard Float selection (e.g pasted items)
+    if(!m_moveSelectionToolActived && !m_floatSelection.empty()){
+        auto mapScene = static_cast<MapScene*>(scene());
+        DiscardFloatSelectionCommand *dfsc = new DiscardFloatSelectionCommand{mapScene,
+                                                                              &m_floatSelection};
+        m_undoStack->push(dfsc);
     }
 
     // IF SELECTION TOOL DISABLED
@@ -138,14 +136,17 @@ void MapView::cutTriggered()
                                                                           &m_originalItemsSelected};
         m_undoStack->push(deleteSelectionCommand);
         deleteSelectionCommand->setText("Selection cutted\ncut selection");
+        restoreOriginalSeletedItem();
     }
 }
 
 void MapView::pasteTriggered()
 {
-    if(!m_copiedItems.empty() && m_pastedItems.empty()){
+    // m_floatSelection.empty() is necessary to avoid double Ctrl + V
+    // Avoid it is a good thing for commands
+    if(!m_copiedItems.empty() && m_floatSelection.empty()){
         auto mapScene = static_cast<MapScene*>(scene());
-        QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_pastedItems};
+        QUndoCommand *pasteCommand = new PasteCommand{mapScene, &m_copiedItems, &m_floatSelection};
         m_undoStack->push(pasteCommand);
         emit activeAnchorAct(true);
     }
@@ -354,21 +355,15 @@ TileItem* MapView::copyTile(TileItem *itemToCopy)
     const MapScene *mapScene = static_cast<MapScene*>(scene());
     const QSizeF sizeTile{static_cast<qreal>(mapScene->tileWidth()),
                           static_cast<qreal>(mapScene->tileHeight())};
-    TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, sizeTile}};
-    copiedItem->setPos(itemToCopy->scenePos());
-    copiedItem->setPen(itemToCopy->pen());
-    copiedItem->setBrush(itemToCopy->brush());
-    copiedItem->setName(itemToCopy->name());
-    copiedItem->setIndex(itemToCopy->index());
-    return copiedItem;
+    return UtilityTools::copyTile(itemToCopy, sizeTile);
 }
 
 QRectF MapView::pastedSelectionBoundingRect() const
 {
-    assert(!m_pastedItems.empty()
-           && "MapView::pastedSelectionBoundingRect - m_pastedItems cannot be empty");
-    const QPointF startPoint = m_pastedItems[0]->scenePos();
-    const TileItem *lastItem = m_pastedItems.back();
+    assert(!m_floatSelection.empty()
+           && "MapView::pastedSelectionBoundingRect - m_floatSelection cannot be empty");
+    const QPointF startPoint = m_floatSelection[0]->scenePos();
+    const TileItem *lastItem = m_floatSelection.back();
     const QPointF lastItemPos = lastItem->scenePos();
     MapScene *mapScene = static_cast<MapScene*>(scene());
     const QSizeF itemSize{static_cast<qreal>(mapScene->tileWidth()),
@@ -382,7 +377,7 @@ QRectF MapView::pastedSelectionBoundingRect() const
 
 bool MapView::canDragPastedSelection() const
 {
-    if(m_moveSelectionToolActived && !m_pastedItems.empty()){
+    if(m_moveSelectionToolActived && !m_floatSelection.empty()){
         const auto mapScene = static_cast<MapScene*>(scene());
         const QRectF sceneRect = QRectF{QPointF{0, 0}, QSizeF{mapScene->sceneRect().size()}};
         const QPointF mousePos = mapScene->mousePosition();
@@ -396,7 +391,7 @@ bool MapView::canDragPastedSelection() const
 
 bool MapView::canAnchor()
 {
-    if(m_moveSelectionToolActived && !m_pastedItems.empty()){
+    if(m_moveSelectionToolActived && !m_floatSelection.empty()){
         const auto mapScene = static_cast<MapScene*>(scene());
         const QPointF mousePos = mapScene->mousePosition();
         const QRectF copiedSelectionRect = pastedSelectionBoundingRect();
@@ -414,9 +409,9 @@ bool MapView::canAnchor()
 
 void MapView::adjustFocusRectPastedSelectionDragging()
 {
-    assert(!m_pastedItems.empty() && "m_pastedItems cannot be empty");
+    assert(!m_floatSelection.empty() && "m_floatSelection cannot be empty");
     const auto mapScene = static_cast<MapScene*>(scene());
-    const QPointF firstItemPos = m_pastedItems[0]->scenePos();
+    const QPointF firstItemPos = m_floatSelection[0]->scenePos();
     // Based to the top left point of first item in copied Selection
     const int focusRectIndex = UtilityTools::indexRelativeToPos(firstItemPos,
                                                                 QSize{mapScene->tileWidth(), mapScene->tileHeight()},
@@ -430,12 +425,13 @@ void MapView::adjustFocusRectPastedSelectionDragging()
 
 void MapView::adjustPastedSelectionPosEndDrag()
 {
-    assert(!m_pastedItems.empty() && "m_pastedItems cannot be empty");
+    assert(!m_floatSelection.empty() && "m_floatSelection cannot be empty");
     const auto mapScene = static_cast<MapScene*>(scene());
-    const QPointF firstItemPos = m_pastedItems[0]->scenePos();
+    const QPointF firstItemPos = m_floatSelection[0]->scenePos();
     const QPointF focusRectPos = mapScene->focusRect()->scenePos();
+    qDebug() << "MapView::adjustPastedSelectionPosEndDrag - Focus Rect Pos => " << focusRectPos;
     const QPointF movement = focusRectPos - firstItemPos;
-    for(auto&& item : m_pastedItems){
+    for(auto&& item : m_floatSelection){
         item->moveBy(movement.x(), movement.y());
     }
 }
@@ -463,7 +459,7 @@ void MapView::movePastedSelection()
     }
 
     // Move copied selection
-    for(const auto& item : m_pastedItems){
+    for(const auto& item : m_floatSelection){
         item->moveBy(movement.x(), movement.y());
     }
 }
@@ -471,7 +467,7 @@ void MapView::movePastedSelection()
 void MapView::anchorPastedSelection()
 {
     auto mapScene = static_cast<MapScene*>(scene());
-    QUndoCommand *anchorCommand = new AnchorCommand{mapScene, &m_pastedItems};
+    QUndoCommand *anchorCommand = new AnchorCommand{mapScene, &m_floatSelection};
     m_undoStack->push(anchorCommand);
     emit activeAnchorAct(false);
 }

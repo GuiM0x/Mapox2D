@@ -9,6 +9,7 @@
 #include "commands/fillselectioncommand.h"
 #include "commands/anchorcommand.h"
 #include "commands/deleteselectioncommand.h"
+#include "commands/discardfloatselectioncommand.h"
 #include "tools/utilitytools.h"
 
 #include <map>
@@ -26,9 +27,9 @@ class MapView : public QGraphicsView
 {
     Q_OBJECT
 
-    using ItemsSelected = std::vector<std::tuple<TileItem*, QPen>>;
-    using ItemsCopied   = QList<TileItem*>;
-    using ItemsPasted   = QList<TileItem*>;
+    using ItemsSelected  = std::vector<std::tuple<TileItem*, QPen>>;
+    using ItemsCopied    = QList<TileItem*>;
+    using FloatSelection = QList<TileItem*>;
 
 public:
     MapView(QWidget *parent = nullptr);
@@ -88,7 +89,7 @@ private:
     QUndoStack                 *m_undoStack{nullptr};
     ItemsSelected               m_originalItemsSelected{};
     ItemsCopied                 m_copiedItems{};
-    ItemsPasted                 m_pastedItems{};
+    FloatSelection              m_floatSelection{};
     bool                        m_selectionToolActived{false};
     bool                        m_moveSelectionToolActived{false};
     bool                        m_brushToolActived{false};

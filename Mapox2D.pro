@@ -41,7 +41,8 @@ SOURCES += \
     commands/fillselectioncommand.cpp \
     commands/anchorcommand.cpp \
     commands/deleteselectioncommand.cpp \
-    dialogs/importspritesheetdialog.cpp
+    dialogs/importspritesheetdialog.cpp \
+    commands/discardfloatselectioncommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -61,7 +62,8 @@ HEADERS += \
     commands/fillselectioncommand.h \
     commands/anchorcommand.h \
     commands/deleteselectioncommand.h \
-    dialogs/importspritesheetdialog.h
+    dialogs/importspritesheetdialog.h \
+    commands/discardfloatselectioncommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

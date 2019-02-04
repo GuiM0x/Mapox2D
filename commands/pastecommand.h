@@ -10,9 +10,9 @@
 class PasteCommand : public QUndoCommand
 {
 public:
-    PasteCommand(MapScene* scene,
-                 const QList<TileItem*>& copiedTiles,
-                 QList<TileItem*> *pastedTiles,
+    PasteCommand(MapScene *scene,
+                 const QList<TileItem*> *copiedTiles,
+                 QList<TileItem*> *floatSelection,
                  QUndoCommand *parent = nullptr);
 
 public:
@@ -20,9 +20,9 @@ public:
     void redo() override;
 
 private:
-    MapScene *m_mapScene{nullptr};
-    QList<TileItem*>  m_copiedTiles{};
-    QList<TileItem*> *m_pastedTiles{nullptr};
+    MapScene               *m_mapScene{nullptr};
+    QList<TileItem*>       *m_floatSelectionFromView{nullptr};
+    QList<TileItem*>        m_floatSelectionSaved{};
 };
 
 #endif // PASTECOMMAND_H

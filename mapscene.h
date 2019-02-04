@@ -82,7 +82,6 @@ private:
                          const QBrush brush = QBrush{});
 
 private:
-    // std::vector<std::tuple<TileItem*, QString>> ??
     std::vector<TileItem*>            m_tiles{};
     std::vector<QString>              m_tilesTexturesNames{};
     QPointF                           m_mouseLastPos{};

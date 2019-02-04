@@ -1,57 +1,66 @@
 #include "anchorcommand.h"
 
 AnchorCommand::AnchorCommand(MapScene *mapScene,
-                             QList<TileItem*> *pastedTiles,
+                             QList<TileItem*> *floatSelection,
                              QUndoCommand *parent)
-    : QUndoCommand{parent}
+    : QUndoCommand{parent},
+      m_mapScene{mapScene},
+      m_floatSelectionFromView{floatSelection}
 {
-    m_mapScene = mapScene;
-    m_pastedTiles = pastedTiles;
-    assert(m_mapScene != nullptr && m_pastedTiles != nullptr);
+
+    assert(m_mapScene != nullptr &&
+            m_floatSelectionFromView != nullptr &&
+            !m_floatSelectionFromView->empty());
+
+    // New item are created to get independant from floatSelection
+    const qreal width  = m_mapScene->tileWidth();
+    const qreal height = m_mapScene->tileHeight();
+    for(const auto& item : *m_floatSelectionFromView){
+        TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
+        m_floatSelectionSaved.push_back(tile);
+        // Save first anchor pos
+        m_firstAnchorPos.push_back(std::make_tuple(tile, item->scenePos()));
+    }
+
     QString infos = "Anchor Selection\nanchor selection";
     setText(infos);
-    for(const auto& item : *m_pastedTiles){
-        const QPointF pos = item->scenePos();
-        m_firstAnchorPos.push_back(std::make_tuple(item, pos));
-    }
 }
 
 void AnchorCommand::undo()
 {
-    m_pastedTiles->clear();
     for(const auto& it : m_firstAnchorPos){
-        auto item = std::get<0>(it);
-        QPointF pos = std::get<1>(it);
+        const auto item = std::get<0>(it);
+        const QPointF pos = std::get<1>(it);
         item->setPos(pos);
     }
-    for(const auto& item : m_removedPastedTiles){
-        auto removedPastedItem = std::get<0>(item);
-        m_pastedTiles->push_back(removedPastedItem);
-        m_mapScene->addItem(removedPastedItem);
-        m_mapScene->fillTile(indexByPos(removedPastedItem), std::get<1>(item));
+
+    m_floatSelectionFromView->clear();
+    for(const auto& item : m_floatSelectionSaved){
+        m_floatSelectionFromView->push_back(item);
+        m_mapScene->addItem(item);
     }
-    m_removedPastedTiles.clear();
+
+    for(const auto& oldItem : m_oldItemOnMap){
+        const int index = std::get<0>(oldItem);
+        const QString textureName = std::get<1>(oldItem);
+        m_mapScene->fillTile(index, textureName);
+    }
 }
 
 void AnchorCommand::redo()
 {
-    m_removedPastedTiles.clear();
-    for(const auto& it : m_firstAnchorPos){
-        auto item = std::get<0>(it);
-        const QPointF pos = std::get<1>(it);
-        item->setPos(pos);
-    }
-    for(const auto& item : *m_pastedTiles){
-        const int index = indexByPos(item);
-        auto oldTile = m_mapScene->itemByIndex(index);
-        m_removedPastedTiles.push_back(std::make_tuple((item), oldTile->name()));
-        // INFO : removeItem() doesn't destroy ptr
-        //        it just removes ownership by Scene and pass it to the caller
+    for(const auto& item : *m_floatSelectionFromView){
         m_mapScene->removeItem(item);
+    }
+
+    m_floatSelectionFromView->clear();
+    m_oldItemOnMap.clear();
+    for(const auto& item : m_floatSelectionSaved){
+        const int index = indexByPos(item);
+        const auto oldItem = m_mapScene->itemByIndex(index);
+        m_oldItemOnMap.push_back(std::make_tuple(index, oldItem->name()));
         m_mapScene->fillTile(index, item->name());
     }
-    m_pastedTiles->clear();
-    m_mapScene->triggerTool(true, ToolType::MoveSelection);
 }
 
 int AnchorCommand::indexByPos(TileItem *item) const

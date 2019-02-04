@@ -11,7 +11,7 @@ class AnchorCommand : public QUndoCommand
 {
 public:
     AnchorCommand(MapScene *mapScene,
-                  QList<TileItem*> *pastedTiles,
+                  QList<TileItem*> *floatSelection,
                   QUndoCommand *parent = nullptr);
 
 public:
@@ -21,10 +21,11 @@ public:
 private:
     int indexByPos(TileItem *item) const;
 private:
-    MapScene *m_mapScene{nullptr};
-    QList<TileItem*> *m_pastedTiles{nullptr};
-    QList<std::tuple<TileItem*, QString>> m_removedPastedTiles{};
-    QList<std::tuple<TileItem*, QPointF>> m_firstAnchorPos{};
+    MapScene                              *m_mapScene{nullptr};
+    QList<TileItem*>                      *m_floatSelectionFromView{nullptr};
+    QList<TileItem*>                       m_floatSelectionSaved{};
+    QList<std::tuple<int, QString>>        m_oldItemOnMap{};
+    QList<std::tuple<TileItem*, QPointF>>  m_firstAnchorPos{};
 };
 
 #endif // ANCHORCOMMAND_H

@@ -1,8 +1,12 @@
 #ifndef UTILITYTOOLS_H
 #define UTILITYTOOLS_H
 
+#include "tileitem.h"
+
 #include <QPointF>
 #include <QSize>
+#include <QPen>
+#include <QBrush>
 
 enum class ToolType{
     NoTool,
@@ -29,6 +33,18 @@ namespace UtilityTools
             index = (i * cols) + j;
         }
         return index;
+    }
+
+    inline
+    TileItem* copyTile(TileItem *itemToCopy, const QSizeF& size)
+    {
+        TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, size}};
+        copiedItem->setPos(itemToCopy->scenePos());
+        copiedItem->setPen(itemToCopy->pen());
+        copiedItem->setBrush(itemToCopy->brush());
+        copiedItem->setName(itemToCopy->name());
+        copiedItem->setIndex(itemToCopy->index());
+        return copiedItem;
     }
 }
 

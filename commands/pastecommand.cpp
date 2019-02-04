@@ -1,34 +1,44 @@
 #include "pastecommand.h"
 
-PasteCommand::PasteCommand(MapScene* scene,
-                           const QList<TileItem*>& copiedTiles,
-                           QList<TileItem*> *pastedTiles,
+PasteCommand::PasteCommand(MapScene *scene,
+                           const QList<TileItem*> *copiedTiles,
+                           QList<TileItem*> *floatSelection,
                            QUndoCommand *parent)
-    : QUndoCommand{parent}
+    : QUndoCommand{parent},
+      m_mapScene{scene},
+      m_floatSelectionFromView{floatSelection}
 {
-    m_mapScene = scene;
-    m_copiedTiles = copiedTiles;
-    m_pastedTiles = pastedTiles;
-    assert(m_mapScene != nullptr && m_pastedTiles != nullptr);
+    assert(m_mapScene != nullptr &&
+            m_floatSelectionFromView != nullptr &&
+            copiedTiles != nullptr);
+
+    // New item are created to get independant from copiedTiles
+    const qreal width  = m_mapScene->tileWidth();
+    const qreal height = m_mapScene->tileHeight();
+    for(const auto& item : *copiedTiles){
+        TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
+        m_floatSelectionSaved.push_back(tile);
+    }
+
     QString infos = "Selection Pasted\npaste selection";
     setText(infos);
 }
 
 void PasteCommand::undo()
 {
-    for(const auto& item : m_copiedTiles){
+    for(const auto& item : *m_floatSelectionFromView){
         m_mapScene->removeItem(item);
     }
-    m_pastedTiles->clear();
+    m_floatSelectionFromView->clear();
     m_mapScene->triggerTool(true, ToolType::NoTool);
 }
 
 void PasteCommand::redo()
 {
-    m_pastedTiles->clear();
-    *m_pastedTiles = m_copiedTiles;
-    for(const auto& tileCopied : *m_pastedTiles){
-        m_mapScene->addItem(tileCopied);
+    m_floatSelectionFromView->clear();
+    for(const auto& item : m_floatSelectionSaved){
+        m_floatSelectionFromView->push_back(item);
+        m_mapScene->addItem(item);
     }
     m_mapScene->triggerTool(true, ToolType::MoveSelection);
 }
