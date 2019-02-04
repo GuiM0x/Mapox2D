@@ -186,7 +186,7 @@ QGraphicsRectItem* MapScene::focusRect()
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
-    m_currentTextureFileName = item->text();
+    m_currentTextureFileName = item->toolTip();
 }
 
 void MapScene::itemFocusChanged()

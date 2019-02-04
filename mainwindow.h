@@ -27,6 +27,9 @@
 #include <QUndoStack>
 #include <QToolBar>
 #include <QDockWidget>
+#include <QShowEvent>
+#include <QDesktopWidget>
+#include <QSizeGrip>
 
 class MainWindow : public QMainWindow
 {
@@ -74,7 +77,6 @@ private:
     void loadFile(const QString& fileName);
 
 private:
-    QWidget        *m_centralWidget{nullptr};
     MapView        *m_mapView{nullptr};
     MapScene       *m_mapScene{nullptr};
     TextureList    *m_textureList{nullptr};

@@ -3,7 +3,10 @@
 TextureList::TextureList(QWidget *parent)
     : QListWidget{parent}
 {
+    setMouseTracking(true);
     setIconSize(QSize{64, 64});
+    setResizeMode(QListView::Adjust);
+    setViewMode(QListView::IconMode);
 }
 
 void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
@@ -20,7 +23,9 @@ void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
         m_textures[textureName] = texture;
         QPixmap scaledTexture = texture.scaled(iconSize());
         QIcon icon{scaledTexture};
-        QListWidgetItem *item = new QListWidgetItem{icon, textureName};
+        QListWidgetItem *item = new QListWidgetItem{icon, ""};
+        item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
+        item->setToolTip(textureName);
         addItem(item);
         if(!fromLoadFile)
             emit docModified();
@@ -41,7 +46,9 @@ void TextureList::addTexture(const QList<QPixmap>& textures, const QString& file
             m_textures[textureName] = texture;
             QPixmap scaledTexture = texture.scaled(iconSize());
             QIcon icon{scaledTexture};
-            QListWidgetItem *item = new QListWidgetItem{icon, textureName};
+            QListWidgetItem *item = new QListWidgetItem{icon, ""};
+            item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
+            item->setToolTip(textureName);
             addItem(item);
         } else {
             good = false;
