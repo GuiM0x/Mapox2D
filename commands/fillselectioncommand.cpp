@@ -10,10 +10,14 @@ FillSelectionCommand::FillSelectionCommand(MapScene *mapScene,
     assert(m_mapScene != nullptr);
     m_textureName = textureName;
     m_itemsSelected = itemsSelected;
-    if(m_itemsSelected.empty()){
+    if(m_itemsSelected.empty()){ // Necessary ?
         for(int i = 0; i < (m_mapScene->rows() * m_mapScene->cols()); ++i){
             m_itemsSelected.push_back(std::make_pair(m_mapScene->itemByIndex(i), QPen{}));
         }
+    }
+    for(const auto& item : m_itemsSelected){
+        const QString oldName = std::get<0>(item)->name();
+        m_oldItems.push_back(std::make_pair(std::get<0>(item), oldName));
     }
     const QString infos = "Selection filled with [" + m_textureName + "]";
     setText(infos);
@@ -22,6 +26,7 @@ FillSelectionCommand::FillSelectionCommand(MapScene *mapScene,
 void FillSelectionCommand::undo()
 {
     for(const auto& item : m_oldItems){
+        m_mapScene->deleteTile(std::get<0>(item)->index());
         m_mapScene->fillTile(std::get<0>(item)->index(), std::get<1>(item), true);
     }
 }
@@ -29,8 +34,6 @@ void FillSelectionCommand::undo()
 void FillSelectionCommand::redo()
 {
     for(const auto& item : m_itemsSelected){
-        const QString oldName = std::get<0>(item)->name();
-        m_oldItems.push_back(std::make_pair(std::get<0>(item), oldName));
-        m_mapScene->fillTile(std::get<0>(item), m_textureName);
+        m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName, true);
     }
 }
