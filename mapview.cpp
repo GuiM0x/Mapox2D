@@ -197,6 +197,21 @@ void MapView::undoActTriggered(bool trigger)
     }
 }
 
+void MapView::selectAll()
+{
+    restoreOriginalSeletedItem();
+    QList<QGraphicsItem*> allItems = items();
+    for(const auto& item : allItems){
+        TileItem *itemSelected = qgraphicsitem_cast<TileItem*>(item);
+        // Avoid selection of focusRect - it's the only one with no pen
+        if(itemSelected->pen().style() != Qt::NoPen){
+            m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
+            itemSelected->setOpacity(0.5);
+            itemSelected->setPen(QPen{Qt::DotLine});
+        }
+    }
+}
+
 void MapView::focusOutEvent(QFocusEvent *event)
 {
     if(event->lostFocus()){

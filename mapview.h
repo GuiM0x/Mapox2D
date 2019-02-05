@@ -57,6 +57,7 @@ public slots:
     void fillSelection();
     void anchorSelection();
     void undoActTriggered(bool trigger);
+    void selectAll();
 
 private:
     void focusOutEvent(QFocusEvent *event) override;

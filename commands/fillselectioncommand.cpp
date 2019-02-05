@@ -10,11 +10,13 @@ FillSelectionCommand::FillSelectionCommand(MapScene *mapScene,
     assert(m_mapScene != nullptr);
     m_textureName = textureName;
     m_itemsSelected = itemsSelected;
-    if(m_itemsSelected.empty()){ // Necessary ?
+    // If no selection, the map will be full filled
+    if(m_itemsSelected.empty()){
         for(int i = 0; i < (m_mapScene->rows() * m_mapScene->cols()); ++i){
             m_itemsSelected.push_back(std::make_pair(m_mapScene->itemByIndex(i), QPen{}));
         }
     }
+    // We save old tile's name before redo()
     for(const auto& item : m_itemsSelected){
         const QString oldName = std::get<0>(item)->name();
         m_oldItems.push_back(std::make_pair(std::get<0>(item), oldName));
@@ -34,6 +36,6 @@ void FillSelectionCommand::undo()
 void FillSelectionCommand::redo()
 {
     for(const auto& item : m_itemsSelected){
-        m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName, true);
+        m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName);
     }
 }

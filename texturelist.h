@@ -24,7 +24,7 @@ signals:
 
 private slots:
     void renameTriggered();
-    void removeFromMapTriggerer();
+    void removeFromMapTriggered();
     void removeFromListTriggered();
 
 protected:
@@ -34,7 +34,7 @@ protected:
 
 public:
     void addTexture(const QString& fileName, bool fromLoadFile = false);
-    void addTexture(const QBrush& brush, const QString& textureName);
+    QListWidgetItem* addTexture(const QBrush& brush, const QString& textureName);
     void addTexture(const QList<QPixmap>& textures, const QString& fileName);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();

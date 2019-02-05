@@ -7,6 +7,7 @@ TextureList::TextureList(QWidget *parent)
     setIconSize(QSize{64, 64});
     setResizeMode(QListView::Adjust);
     setViewMode(QListView::IconMode);
+    setUniformItemSizes(true);
     createContextMenu();
 }
 
@@ -22,18 +23,40 @@ void TextureList::renameTriggered()
     }
 }
 
-void TextureList::removeFromMapTriggerer()
+void TextureList::removeFromMapTriggered()
 {
-    qDebug() << "TextureList::removeFromMapTriggerer";
     assert(m_itemContextMenu != nullptr);
-    qDebug() << m_itemContextMenu->toolTip();
+    auto result = QMessageBox::warning(this,
+                                       tr("Remove tile from map"),
+                                       tr("Warning : Removing selected tile erase completely the tile on map.\nAre you sure ?"),
+                                       QMessageBox::Ok | QMessageBox::Cancel);
+    if(result == QMessageBox::Ok){
+        qDebug() << "TextureList::removeFromMapTriggered - "
+                 << m_itemContextMenu->toolTip()
+                 << " removed from map.";
+    } else {
+        qDebug() << "TextureList::removeFromMapTriggered - "
+                 << m_itemContextMenu->toolTip()
+                 << " action canceled.";
+    }
 }
 
 void TextureList::removeFromListTriggered()
 {
-    qDebug() << "TextureList::removeFromListTriggered";
     assert(m_itemContextMenu != nullptr);
-    qDebug() << m_itemContextMenu->toolTip();
+    auto result = QMessageBox::warning(this,
+                                       tr("Remove tile from list"),
+                                       tr("Warning : Removing tile from list remove it from map too.\nAre you sure ?"),
+                                       QMessageBox::Ok | QMessageBox::Cancel);
+    if(result == QMessageBox::Ok){
+        qDebug() << "TextureList::removeFromListTriggered - "
+                 << m_itemContextMenu->toolTip()
+                 << " removed from map and list.";
+    } else {
+        qDebug() << "TextureList::removeFromListTriggered - "
+                 << m_itemContextMenu->toolTip()
+                 << " action canceled.";
+    }
 }
 
 #ifndef QT_NO_CONTEXTMENU
@@ -71,7 +94,7 @@ void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
     }
 }
 
-void TextureList::addTexture(const QBrush& brush, const QString& textureName)
+QListWidgetItem* TextureList::addTexture(const QBrush& brush, const QString& textureName)
 {
     auto it = m_textures.find(textureName);
     if(it == std::end(m_textures) && !textureName.isEmpty()){
@@ -84,7 +107,9 @@ void TextureList::addTexture(const QBrush& brush, const QString& textureName)
         item->setToolTip(textureName);
         addItem(item);
         emit docModified();
+        return item;
     }
+    return nullptr;
 }
 
 void TextureList::addTexture(const QList<QPixmap>& textures, const QString& fileName)
@@ -147,7 +172,7 @@ void TextureList::createContextMenu()
     m_removeFromMapAct = new QAction{tr("Remove from map"), this};
     m_contextMenu->addAction(m_removeFromMapAct);
     connect(m_removeFromMapAct, &QAction::triggered,
-            this, &TextureList::removeFromMapTriggerer);
+            this, &TextureList::removeFromMapTriggered);
 
     m_removeFromListAct = new QAction{tr("Remove from list"), this};
     m_contextMenu->addAction(m_removeFromListAct);

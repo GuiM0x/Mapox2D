@@ -69,6 +69,7 @@ void NewMapDialog::createSizeOptionBox()
     // CREATE WIDTH SPIN BOX
     m_spinBoxWidth = new QSpinBox{this};
     m_spinBoxWidth->setRange(1, 500);
+    m_spinBoxWidth->selectAll();
     m_fields[FieldType::Width] = m_spinBoxWidth;
     QLabel *labelWidth = new QLabel{"Width", this};
     QHBoxLayout *labelSpinWidthLayout = new QHBoxLayout{};

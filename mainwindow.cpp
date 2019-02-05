@@ -428,6 +428,12 @@ void MainWindow::createActions()
     toolsMenu->addAction(m_selectAct);
     toolsToolBar->addAction(m_selectAct);
 
+    // SELECT ALL
+    QAction *selectAllAct = new QAction{tr("Select all"), this};
+    selectAllAct->setShortcut(QKeySequence::SelectAll);
+    connect(selectAllAct, &QAction::triggered, m_mapView, &MapView::selectAll);
+    toolsMenu->addAction(selectAllAct);
+
     // MOVE SELECTION
     QIcon moveSelectionIcon{":/icons/moveSelection.png"};
     m_moveSelectionAct = new QAction{moveSelectionIcon, tr("&Move Selection Tool"), this};

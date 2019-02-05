@@ -121,7 +121,8 @@ void MapScene::fillTile(int index, const QString& textureName, bool isUndoComman
             // add the composed brush to texturelist
             if(!isTileTextureSameAsCurrentSelected(index) &&
                     !m_textureList->textureAlreadyExists(newName, false)){
-                m_textureList->addTexture(QBrush{newImage}, newName);
+                auto listWidgetItem = m_textureList->addTexture(QBrush{newImage}, newName);
+                listWidgetItem->setHidden(true);
             }
         }
     }
