@@ -14,6 +14,7 @@
 
 #include <QDebug>
 #include <QMainWindow>
+#include <QContextMenuEvent>
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QGridLayout>
@@ -61,6 +62,7 @@ private slots:
     void checkedTool(ToolType type = ToolType::NoTool);
     void replaceTextureList(bool replace);
     void replaceUndoView(bool replace);
+    void clearUndoStack();
 
 private:
     void createActions();

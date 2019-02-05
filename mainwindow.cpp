@@ -22,9 +22,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
     connect(m_mapScene, &MapScene::triggerTool, m_mapView, &MapView::toolTriggered);
 
-    connect(this, &MainWindow::toolTriggered, m_mapView, &MapView::toolTriggered);
-    connect(m_mapView, &MapView::checkTool, this, &MainWindow::checkedTool);
-
     QPalette pal = palette();
     pal.setColor(QPalette::Window,     QColor{ 60,  60, 60 }); // general background
     pal.setColor(QPalette::WindowText, QColor{210, 210, 210});
@@ -33,17 +30,34 @@ MainWindow::MainWindow(QWidget *parent)
     setPalette(pal);
     setAutoFillBackground(true);
 
-    menuBar()->setStyleSheet("QMenuBar{background-color:rgb(60, 60, 60); color:rgb(210, 210, 210)}");
+    menuBar()->setStyleSheet("QMenuBar{"
+                             "    background     : rgb(60, 60, 60);"
+                             "    color          : rgb(210, 210, 210);"
+                             "}"
+                             "QMenuBar::item:selected{"
+                             "    background     : rgb(30, 100, 170);"
+                             "}");
     m_textureList->setStyleSheet("QListView{"
-                                 "    background          :rgb(60, 60, 60);"
-                                 "    border              :1px solid rgb(100, 100, 100);"
+                                 "    background          : rgb(60, 60, 60);"
+                                 "    border              : 1px solid rgb(100, 100, 100);"
                                  "}"
+                                 ""
+                                 ""
+                                 ""
+                                 ""
+                                 "QLineEdit{"
+                                 "    border              : 1px solid rgb(100, 100, 100);"
+                                 "    padding             : 3px;"
+                                 "}"
+                                 ""
                                  ""
                                  ""
                                  ""
                                  "QWidget{"
                                  "    background          : rgb(60, 60, 60);"
+                                 "    color               : rgb(210, 210, 210);"
                                  "}"
+                                 ""
                                  ""
                                  ""
                                  ""
@@ -279,6 +293,11 @@ void MainWindow::replaceUndoView(bool replace)
     }
 }
 
+void MainWindow::clearUndoStack()
+{
+    m_undoStack->clear();
+}
+
 void MainWindow::createActions()
 {
     const QString toolBarStyle{"QToolBar{"
@@ -462,6 +481,8 @@ void MainWindow::createMapView()
     m_mapView->setCacheMode(QGraphicsView::CacheBackground);
     m_mapView->holdStatusBar(statusBar());
     m_mapView->holdUndoStack(m_undoStack);
+    connect(this, &MainWindow::toolTriggered, m_mapView, &MapView::toolTriggered);
+    connect(m_mapView, &MapView::checkTool, this, &MainWindow::checkedTool);
     m_mapView->setStyleSheet("QGraphicsView{"
                              "    border              : rgb(100, 100, 100);"
                              "}"
@@ -563,6 +584,8 @@ void MainWindow::createMapScene()
             m_mapView, &MapView::mouseMovingAndPressing);
     connect(m_mapScene, &MapScene::itemFocusChange,
             m_mapView, &MapView::itemFocusChanged);
+    connect(m_mapScene, &MapScene::clearUndoStack,
+            this, &MainWindow::clearUndoStack);
 
     std::map<NewMapDialog::FieldType, int> defaultMap{};
     defaultMap[NewMapDialog::FieldType::Width]  = 32;
@@ -575,6 +598,7 @@ void MainWindow::createMapScene()
 void MainWindow::createMapScene(std::map<NewMapDialog::FieldType, int>& values)
 {
     m_documentModified = false;
+
     m_mapView->reset();
     m_mapScene->createMatrix(values[NewMapDialog::FieldType::Width],
                              values[NewMapDialog::FieldType::Height],
@@ -761,6 +785,10 @@ bool MainWindow::maybeSave()
 
 bool MainWindow::saveFile(const QString &fileName)
 { 
+    // TODO : Saving file can take a little time
+    //          -> make a classic progress bar dialog ?
+    //          -> or progress bar in status bar ?
+
     DataSaver ds{m_mapScene, m_textureList};
     if(!ds.saveAllDatas(fileName))
         return false;

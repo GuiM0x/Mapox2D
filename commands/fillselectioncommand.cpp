@@ -22,7 +22,7 @@ FillSelectionCommand::FillSelectionCommand(MapScene *mapScene,
 void FillSelectionCommand::undo()
 {
     for(const auto& item : m_oldItems){
-        m_mapScene->fillTile(std::get<0>(item), std::get<1>(item));
+        m_mapScene->fillTile(std::get<0>(item)->index(), std::get<1>(item), true);
     }
 }
 

@@ -38,7 +38,7 @@ public:
     int tileWidth() const;
     int tileHeight() const;
     std::vector<QString>* allTilesName();
-    void fillTile(int index, const QString& textureName);
+    void fillTile(int index, const QString& textureName, bool isUndoCommand = false);
     void fillTile(TileItem* item, const QString& textureName);
     void deleteTile(int index);
     int currentTile() const;
@@ -58,10 +58,13 @@ signals:
     void itemFocusChange();
     void triggerTool(bool trigger = true,
                      ToolType type = ToolType::Selection);
+    void clearUndoStack();
 
 public slots:
     // Connected with signal &QListWidget::itemClicked
     void currentTextureSelectedInList(QListWidgetItem* item);
+    // Triggered by Texture List
+    void renameTile(const QString& oldName, const QString& newName);
 
 private slots:
     void itemFocusChanged();

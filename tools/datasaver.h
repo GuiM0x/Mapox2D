@@ -27,12 +27,12 @@ private:
     bool dataToFile() const;
 
 private:
-    MapScene            *m_mapScene{nullptr};
-    TextureList         *m_textureList{nullptr};
-    std::vector<QString> m_texturesNewPath{};
-    QString              m_fullPathSaveFile{};
-    QString              m_folderProjectName{};
-    std::vector<QString> m_matrixDatas{};
+    MapScene             *m_mapScene{nullptr};
+    TextureList          *m_textureList{nullptr};
+    std::vector<QString>  m_texturesNewPath{};
+    QString               m_fullPathSaveFile{};
+    QString               m_folderProjectName{};
+    std::vector<QString>  m_matrixDatas{};
 };
 
 #endif // DATASAVER_H

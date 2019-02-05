@@ -14,8 +14,9 @@ void MapScene::holdStatusBar(QStatusBar *statusBar)
 
 void MapScene::holdTextureList(TextureList *texturelist)
 {
-    if(m_textureList == nullptr)
-        m_textureList = texturelist;
+    m_textureList = texturelist;
+    assert(m_textureList != nullptr);
+    connect(m_textureList, &TextureList::renameTileScene, this, &MapScene::renameTile);
 }
 
 void MapScene::createMatrix(int tileWidth, int tileHeight, int rows, int cols)
@@ -93,12 +94,16 @@ std::vector<QString>* MapScene::allTilesName()
 }
 
 // USED BY COMMANDS (FillTileCommand)
-void MapScene::fillTile(int index, const QString& textureName)
+void MapScene::fillTile(int index, const QString& textureName, bool isUndoCommand)
 {
+    // Note : isUndoCommand is here to avoid new texture created in list
+    //        when FillTileCommand::undo() is called
+
     assert(index >= 0 && index < m_rows*m_cols);
 
     auto tile = itemByIndex(index);
     QImage actualImage = tile->brush().textureImage();
+    const QString actualName = tile->name();
 
     QPixmap scaled{};
     if(!textureName.isEmpty())
@@ -106,17 +111,26 @@ void MapScene::fillTile(int index, const QString& textureName)
                  .scaled(m_tileSize.width(), m_tileSize.height());
     QImage newImage = scaled.toImage();
 
+    QString newName = textureName;
     if(!textureName.isEmpty()){
         QPainter painter{&newImage};
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
         painter.drawImage(0, 0, actualImage);
+        if(!actualName.isEmpty() && !isUndoCommand){ // Ok we've got a composed image
+            newName = actualName + textureName;
+            // add the composed brush to texturelist
+            if(!isTileTextureSameAsCurrentSelected(index) &&
+                    !m_textureList->textureAlreadyExists(newName, false)){
+                m_textureList->addTexture(QBrush{newImage}, newName);
+            }
+        }
     }
 
     const std::size_t id = static_cast<std::size_t>(index);
     QBrush brush{newImage};
     m_tiles[id]->setBrush(brush);
-    m_tiles[id]->setName(textureName);
-    m_tilesTexturesNames[id] = textureName;
+    m_tiles[id]->setName(newName);
+    m_tilesTexturesNames[id] = newName;
 }
 
 // USED BY COMMANDS (FillSelectionCommand)
@@ -187,6 +201,23 @@ QGraphicsRectItem* MapScene::focusRect()
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->toolTip();
+}
+
+void MapScene::renameTile(const QString& oldName, const QString& newName)
+{
+    assert(!oldName.isEmpty() && !newName.isEmpty());
+    m_currentTextureFileName = newName;
+    for(auto& name : m_tilesTexturesNames){
+        if(name == oldName){
+            name = newName;
+        }
+    }
+    for(auto& tile : m_tiles){
+        if(tile->name() == oldName){
+            tile->setName(newName);
+        }
+    }
+    emit clearUndoStack();
 }
 
 void MapScene::itemFocusChanged()
@@ -260,10 +291,29 @@ int MapScene::indexRelativeToPos(const QPointF& pos)
 
 bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 {
-    if(index != -1){
+    if(index > -1){
         std::size_t id = static_cast<std::size_t>(index);
-        if(m_tilesTexturesNames[id] == m_currentTextureFileName)
+        //      Compare textureOnMap and textureInList end characters.
+        //      Because when image are composed (few images stacked on the same tile),
+        //      the name automatically concatened (tileOnMapName + tileSelectedInList).
+        //      So, to avoid an infinite filling action, we need to compare end characters
+        //      in these 2 string.
+        //      To do that, we use algo' with reverse iterator.
+        const QString textureOnMap  = m_tilesTexturesNames[id];
+        const QString textureInList = m_currentTextureFileName;
+        QString smallerString = textureOnMap;
+        QString biggerString = textureInList;
+        if(smallerString.size() != biggerString.size()){
+            if(smallerString.size() > biggerString.size()){
+                smallerString = textureInList;
+                biggerString = textureOnMap;
+            }
+        }
+        bool isEndCharacterEqual = std::equal(std::rbegin(smallerString), std::rend(smallerString),
+                                              std::rbegin(biggerString));
+        if(isEndCharacterEqual && !textureOnMap.isEmpty())
             return true;
+
     } else {
         return true;
     }

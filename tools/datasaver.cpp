@@ -3,7 +3,7 @@
 DataSaver::DataSaver(MapScene *mapScene, TextureList *textureList)
     : m_mapScene{mapScene}, m_textureList{textureList}
 {
-
+    assert(m_mapScene != nullptr && m_textureList != nullptr);
 }
 
 bool DataSaver::saveAllDatas(const QString& fileName)
@@ -22,6 +22,7 @@ void DataSaver::textureToAppData(const QString& fileName)
     // - cut the name to create folder with the project name
     // - Then add to path to create the folder
     m_fullPathSaveFile = fileName;
+
     const QString cutFromPath = StringTools::cutFileName(fileName);
     const QString projectName = StringTools::cutExtensionFileName(cutFromPath);
     m_folderProjectName = projectName;
@@ -58,6 +59,7 @@ void DataSaver::matrixToData()
     int cols = m_mapScene->cols();
     int tileWidth = m_mapScene->tileWidth();
     int tileHeight = m_mapScene->tileHeight();
+
     m_matrixDatas.push_back("tileWidth=");
     m_matrixDatas.push_back(QString::number(tileWidth));
     m_matrixDatas.push_back("tileHeight=");
@@ -67,11 +69,13 @@ void DataSaver::matrixToData()
     m_matrixDatas.push_back("cols=");
     m_matrixDatas.push_back(QString::number(cols));
     m_matrixDatas.push_back("matrix=");
+
     std::vector<QString> *allTilesName = m_mapScene->allTilesName();
     for(std::size_t i = 0; i < allTilesName->size(); ++i){
-        if(!(*allTilesName)[i].isEmpty()){
+        const QString textureName = (*allTilesName)[i];
+        if(!textureName.isEmpty()){
             m_matrixDatas.push_back(QString::number(i));
-            m_matrixDatas.push_back((*allTilesName)[i]);
+            m_matrixDatas.push_back(textureName);
         }
     }
 }

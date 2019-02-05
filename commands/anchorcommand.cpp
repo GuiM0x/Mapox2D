@@ -16,10 +16,12 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
     const qreal width  = m_mapScene->tileWidth();
     const qreal height = m_mapScene->tileHeight();
     for(const auto& item : *m_floatSelectionFromView){
-        TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
-        m_floatSelectionSaved.push_back(tile);
-        // Save first anchor pos
-        m_firstAnchorPos.push_back(std::make_tuple(tile, item->scenePos()));
+        if(!item->name().isEmpty()){
+            TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
+            m_floatSelectionSaved.push_back(tile);
+            // Save first anchor pos
+            m_firstAnchorPos.push_back(std::make_tuple(tile, item->scenePos()));
+        }
     }
 
     QString infos = "Anchor Selection\nanchor selection";
@@ -61,6 +63,8 @@ void AnchorCommand::redo()
         m_oldItemOnMap.push_back(std::make_tuple(index, oldItem->name()));
         m_mapScene->fillTile(index, item->name());
     }
+
+    m_mapScene->triggerTool(true, ToolType::Brush);
 }
 
 int AnchorCommand::indexByPos(TileItem *item) const
