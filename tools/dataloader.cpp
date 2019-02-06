@@ -54,7 +54,20 @@ void DataLoader::createNewTextureList()
         indexEndTexturePath = m_datas.size();
 
     for(std::size_t i = indexBeginTexturePath; i < indexEndTexturePath; ++i){
-        m_textureList->addTexture(m_datas[i], true);
+        const QString filePath = m_datas[i];
+        QListWidgetItem *item = m_textureList->addTexture(m_datas[i], true);
+        if(item != nullptr){
+            // Get extension from filePath
+            QString ext{};
+            int start = filePath.size() - 4;
+            assert(start >= 0);
+            for(int i = start; i < filePath.size(); ++i){
+                ext += filePath[i];
+            }
+            // If extension == hide -> item hide in Texture List
+            if(ext == "hide")
+                item->setHidden(true);
+        }
     }
 }
 

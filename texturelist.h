@@ -21,6 +21,10 @@ public:
 signals:
     void docModified();
     void renameTileScene(const QString& oldName, const QString& newName);
+    // Connected with slot MapView::removeTileFromScene to execute command DeleteSelection
+    void removeTileFromScene(const QString& tileName);
+    // Connected with slot MainWindow::removeItemFromTextureList
+    void removeItemFromTextureList(const QString& textureName);
 
 private slots:
     void renameTriggered();
@@ -33,11 +37,13 @@ protected:
 #endif // QT_NO_CONTEXTMENU
 
 public:
-    void addTexture(const QString& fileName, bool fromLoadFile = false);
+    QListWidgetItem* addTexture(const QString& fileName, bool fromLoadFile = false);
     QListWidgetItem* addTexture(const QBrush& brush, const QString& textureName);
     void addTexture(const QList<QPixmap>& textures, const QString& fileName);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();
+    QListWidgetItem* widgetItem(const QString& textureName) const;
+    QList<QListWidgetItem*> widgetItems() const;
     void clean();
     bool textureAlreadyExists(const QString& fileName, bool messageBoxActived = true);
 
@@ -49,6 +55,7 @@ private:
 
 private:
     std::map<QString, QPixmap>  m_textures{};
+    QList<QListWidgetItem*>     m_widgetItems{};
     QMenu                      *m_contextMenu{nullptr};
     QAction                    *m_renameAct{nullptr};
     QAction                    *m_removeFromMapAct{nullptr};

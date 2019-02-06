@@ -186,7 +186,7 @@ void MapView::fillSelection()
 void MapView::anchorSelection()
 {
     if(canAnchor()){
-        anchorSelection();
+        anchorPastedSelection();
     }
 }
 
@@ -210,6 +210,32 @@ void MapView::selectAll()
             itemSelected->setPen(QPen{Qt::DotLine});
         }
     }
+}
+
+void MapView::removeTileFromScene(const QString& tileName)
+{
+    // Slot connected with signal Texture::removeTileFromScene
+
+    assert(!tileName.isEmpty());
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    const std::vector<TileItem*> *tiles = mapScene->tiles();
+    restoreOriginalSeletedItem();
+    for(const auto& item : *tiles){
+        const std::string itemName = item->name().toStdString();
+        if(!itemName.empty()){
+            if(itemName.find(tileName.toStdString()) != std::string::npos){
+                // Now we push item in m_originalSelected.
+                m_originalItemsSelected.push_back(std::make_tuple(item, item->pen()));
+                item->setOpacity(0.5);
+                item->setPen(QPen{Qt::DotLine});
+            }
+        }
+    }
+    // And here we go : delete selection command
+    DeleteSelectionCommand *deleteSelection =
+            new DeleteSelectionCommand{mapScene,
+                                       &m_originalItemsSelected};
+    m_undoStack->push(deleteSelection);
 }
 
 void MapView::focusOutEvent(QFocusEvent *event)
@@ -444,7 +470,6 @@ void MapView::adjustPastedSelectionPosEndDrag()
     const auto mapScene = static_cast<MapScene*>(scene());
     const QPointF firstItemPos = m_floatSelection[0]->scenePos();
     const QPointF focusRectPos = mapScene->focusRect()->scenePos();
-    qDebug() << "MapView::adjustPastedSelectionPosEndDrag - Focus Rect Pos => " << focusRectPos;
     const QPointF movement = focusRectPos - firstItemPos;
     for(auto&& item : m_floatSelection){
         item->moveBy(movement.x(), movement.y());

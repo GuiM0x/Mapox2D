@@ -36,9 +36,24 @@ void DataSaver::textureToAppData(const QString& fileName)
         path.mkpath(path.path());
     }
 
-    std::map<QString, QPixmap> *textureMap = m_textureList->textureList();
-    if(!textureMap->empty()){
-        for(auto it = std::begin(*textureMap); it != std::end(*textureMap); ++it){
+    std::map<QString, QPixmap> textureMap = *m_textureList->textureList();
+    QList<QListWidgetItem*> widgetItems = m_textureList->widgetItems();
+    if(!textureMap.empty()){
+        for(const auto& item : widgetItems){
+            const QString textureName{item->toolTip()};
+            QPixmap texture = textureMap[textureName];
+            // Correct a bug when no textures was in list and empty name file was created
+            if(!texture.isNull()){
+                const QString ext = (item->isHidden()) ? ".hide" : ".dat";
+                QString newFileName = path.path() + "/" + textureName + ext;
+                m_texturesNewPath.push_back(newFileName);
+                QFile file{newFileName};
+                file.open(QIODevice::WriteOnly);
+                texture.save(&file, "PNG");
+                //qDebug() << "File saved : " << newFileName;
+            }
+        }
+        /*for(auto it = std::begin(*textureMap); it != std::end(*textureMap); ++it){
             QPixmap texture = it->second;
             // Correct a bug when no textures was in list and empty name file was created
             if(!texture.isNull()){
@@ -49,7 +64,7 @@ void DataSaver::textureToAppData(const QString& fileName)
                 texture.save(&file, "PNG");
                 //qDebug() << "File saved : " << newFileName;
             }
-        }
+        }*/
     }
 }
 

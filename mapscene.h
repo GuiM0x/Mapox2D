@@ -49,6 +49,7 @@ public:
     QPointF focusRectPos() const;
     TileItem* itemByIndex(int index);
     QGraphicsRectItem* focusRect();
+    const std::vector<TileItem*>* tiles() const;
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing

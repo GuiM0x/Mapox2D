@@ -20,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
     connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
     connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
+    connect(m_textureList, &TextureList::removeTileFromScene, m_mapView, &MapView::removeTileFromScene);
+    connect(m_textureList, &TextureList::removeItemFromTextureList, this, &MainWindow::removeItemFromTextureList);
     connect(m_mapScene, &MapScene::triggerTool, m_mapView, &MapView::toolTriggered);
 
     QPalette pal = palette();
@@ -40,6 +42,12 @@ MainWindow::MainWindow(QWidget *parent)
     m_textureList->setStyleSheet("QListView{"
                                  "    background          : rgb(60, 60, 60);"
                                  "    border              : 1px solid rgb(100, 100, 100);"
+                                 "}"
+                                 ""
+                                 ""
+                                 ""
+                                 "QMenu::item:selected{"
+                                 "    background     : rgb(30, 100, 170);"
                                  "}"
                                  ""
                                  ""
@@ -296,6 +304,15 @@ void MainWindow::replaceUndoView(bool replace)
 void MainWindow::clearUndoStack()
 {
     m_undoStack->clear();
+}
+
+void MainWindow::removeItemFromTextureList(const QString& textureName)
+{
+    if(!textureName.isEmpty()){
+        RemoveItemFromTextureListCommand *cmd =
+                new RemoveItemFromTextureListCommand{m_textureList, textureName};
+        m_undoStack->push(cmd);
+    }
 }
 
 void MainWindow::createActions()

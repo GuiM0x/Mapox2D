@@ -6,6 +6,7 @@
 #include "texturelist.h"
 #include "dialogs/newmapdialog.h"
 #include "dialogs/importspritesheetdialog.h"
+#include "commands/removeitemfromtexturelistcommand.h"
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"
 #include "tools/utilitytools.h"
@@ -63,6 +64,8 @@ private slots:
     void replaceTextureList(bool replace);
     void replaceUndoView(bool replace);
     void clearUndoStack();
+    // Connected with signal TextureList::removeItemFromTextureList
+    void removeItemFromTextureList(const QString& textureName);
 
 private:
     void createActions();

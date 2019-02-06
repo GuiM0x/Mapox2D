@@ -26,19 +26,8 @@ void TextureList::renameTriggered()
 void TextureList::removeFromMapTriggered()
 {
     assert(m_itemContextMenu != nullptr);
-    auto result = QMessageBox::warning(this,
-                                       tr("Remove tile from map"),
-                                       tr("Warning : Removing selected tile erase completely the tile on map.\nAre you sure ?"),
-                                       QMessageBox::Ok | QMessageBox::Cancel);
-    if(result == QMessageBox::Ok){
-        qDebug() << "TextureList::removeFromMapTriggered - "
-                 << m_itemContextMenu->toolTip()
-                 << " removed from map.";
-    } else {
-        qDebug() << "TextureList::removeFromMapTriggered - "
-                 << m_itemContextMenu->toolTip()
-                 << " action canceled.";
-    }
+    // Connected with MapView::removeTileFromScene to execute command DeleteSelection
+    emit removeTileFromScene(m_itemContextMenu->toolTip());
 }
 
 void TextureList::removeFromListTriggered()
@@ -49,13 +38,10 @@ void TextureList::removeFromListTriggered()
                                        tr("Warning : Removing tile from list remove it from map too.\nAre you sure ?"),
                                        QMessageBox::Ok | QMessageBox::Cancel);
     if(result == QMessageBox::Ok){
-        qDebug() << "TextureList::removeFromListTriggered - "
-                 << m_itemContextMenu->toolTip()
-                 << " removed from map and list.";
-    } else {
-        qDebug() << "TextureList::removeFromListTriggered - "
-                 << m_itemContextMenu->toolTip()
-                 << " action canceled.";
+        // Connected with MainWindow::removeItemFromTextureList
+        // MainWindow executes the remove item command
+        removeFromMapTriggered();
+        emit removeItemFromTextureList(m_itemContextMenu->toolTip());
     }
 }
 
@@ -71,7 +57,7 @@ void TextureList::contextMenuEvent(QContextMenuEvent *event)
 }
 #endif // QT_NO_CONTEXTMENU
 
-void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
+QListWidgetItem* TextureList::addTexture(const QString& fileName, bool fromLoadFile)
 {
     const QString cuttedFileName = StringTools::cutFileName(fileName);
     const QString textureName = StringTools::cutExtensionFileName(cuttedFileName);
@@ -89,9 +75,12 @@ void TextureList::addTexture(const QString& fileName, bool fromLoadFile)
         item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
         item->setToolTip(textureName);
         addItem(item);
+        m_widgetItems.push_back(item);
         if(!fromLoadFile)
             emit docModified();
+        return item;
     }
+    return nullptr;
 }
 
 QListWidgetItem* TextureList::addTexture(const QBrush& brush, const QString& textureName)
@@ -106,6 +95,7 @@ QListWidgetItem* TextureList::addTexture(const QBrush& brush, const QString& tex
         item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
         item->setToolTip(textureName);
         addItem(item);
+        m_widgetItems.push_back(item);
         emit docModified();
         return item;
     }
@@ -130,6 +120,7 @@ void TextureList::addTexture(const QList<QPixmap>& textures, const QString& file
             item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
             item->setToolTip(textureName);
             addItem(item);
+            m_widgetItems.push_back(item);
         } else {
             good = false;
             break;
@@ -152,10 +143,26 @@ std::map<QString, QPixmap>* TextureList::textureList()
     return &m_textures;
 }
 
+QListWidgetItem* TextureList::widgetItem(const QString& textureName) const
+{
+    for(const auto& item : m_widgetItems){
+        if(item->toolTip() == textureName){
+            return item;
+        }
+    }
+    return nullptr;
+}
+
+QList<QListWidgetItem*> TextureList::widgetItems() const
+{
+    return m_widgetItems;
+}
+
 void TextureList::clean()
 {
     clear();
     m_textures.clear();
+    m_widgetItems.clear();
 }
 
 void TextureList::createContextMenu()

@@ -43,6 +43,7 @@ signals:
     void checkTool(ToolType type = ToolType::NoTool);
     void activeAnchorAct(bool actived);
 
+
 public slots:
     // Connected with signal &MapScene::mouseMoveAndPressLeft
     // The signal indicate that a mouse Left button is pressed
@@ -58,6 +59,8 @@ public slots:
     void anchorSelection();
     void undoActTriggered(bool trigger);
     void selectAll();
+    // Connected with signal Texture::removeTileFromScene
+    void removeTileFromScene(const QString& tileName);
 
 private:
     void focusOutEvent(QFocusEvent *event) override;

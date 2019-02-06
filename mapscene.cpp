@@ -199,6 +199,11 @@ QGraphicsRectItem* MapScene::focusRect()
     return m_focusRect;
 }
 
+const std::vector<TileItem*>* MapScene::tiles() const
+{
+    return &m_tiles;
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->toolTip();

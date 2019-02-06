@@ -42,7 +42,8 @@ SOURCES += \
     commands/anchorcommand.cpp \
     commands/deleteselectioncommand.cpp \
     dialogs/importspritesheetdialog.cpp \
-    commands/discardfloatselectioncommand.cpp
+    commands/discardfloatselectioncommand.cpp \
+    commands/removeitemfromtexturelistcommand.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -63,7 +64,8 @@ HEADERS += \
     commands/anchorcommand.h \
     commands/deleteselectioncommand.h \
     dialogs/importspritesheetdialog.h \
-    commands/discardfloatselectioncommand.h
+    commands/discardfloatselectioncommand.h \
+    commands/removeitemfromtexturelistcommand.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
