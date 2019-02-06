@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>stylesheets/dockWidgetStyle.css</file>
+        <file>stylesheets/mapViewStyle.css</file>
+        <file>stylesheets/menuBarStyle.css</file>
+        <file>stylesheets/textureListStyle.css</file>
+        <file>stylesheets/toolBarStyle.css</file>
+        <file>stylesheets/undoViewStyle.css</file>
+        <file>stylesheets/statusBarStyle.css</file>
+    </qresource>
+</RCC>

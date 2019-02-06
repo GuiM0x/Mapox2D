@@ -1,0 +1,21 @@
+QDockWidget::close-button, QDockWidget::float-button{
+    background    : darkgray;
+    border        : 1px solid rgb(100, 100, 100);
+}
+QDockWidget::close-button:hover{
+    background    : rgb(220, 40, 40);
+}
+QDockWidget::float-button:hover{
+    background    : rgb(50, 130, 150);
+}
+QDockWidget::title{
+    text-align    : left;
+    color         : rgb(210, 210, 210);
+    background    : rgb(60, 60 ,60);
+    border        : 1px solid rgb(100, 100, 100);
+    border-bottom : none;
+}
+QDockWidget{
+    color         : rgb(210, 210, 210);
+    border        : 1px solid rgb(100, 100, 100);
+}

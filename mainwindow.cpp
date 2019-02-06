@@ -9,6 +9,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setCentralWidget(m_mapView);
     setWindowFilePath("Untitled  - Mapox2D");
+    setMinimumWidth(1080);
+    registerStyleSheet();
 
     createActions();
     createMapView();
@@ -24,129 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(m_textureList, &TextureList::removeItemFromTextureList, this, &MainWindow::removeItemFromTextureList);
     connect(m_mapScene, &MapScene::triggerTool, m_mapView, &MapView::toolTriggered);
 
-    QPalette pal = palette();
-    pal.setColor(QPalette::Window,     QColor{ 60,  60, 60 }); // general background
-    pal.setColor(QPalette::WindowText, QColor{210, 210, 210});
-    pal.setColor(QPalette::Base,       QColor{ 60,  60, 60 }); // some backgrounds
-    pal.setColor(QPalette::Text,       QColor{210, 210, 210});
-    setPalette(pal);
-    setAutoFillBackground(true);
-
-    menuBar()->setStyleSheet("QMenuBar{"
-                             "    background     : rgb(60, 60, 60);"
-                             "    color          : rgb(210, 210, 210);"
-                             "}"
-                             "QMenuBar::item:selected{"
-                             "    background     : rgb(30, 100, 170);"
-                             "}");
-    m_textureList->setStyleSheet("QListView{"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "}"
-                                 ""
-                                 ""
-                                 ""
-                                 "QMenu::item:selected{"
-                                 "    background     : rgb(30, 100, 170);"
-                                 "}"
-                                 ""
-                                 ""
-                                 ""
-                                 ""
-                                 "QLineEdit{"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    padding             : 3px;"
-                                 "}"
-                                 ""
-                                 ""
-                                 ""
-                                 ""
-                                 "QWidget{"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "    color               : rgb(210, 210, 210);"
-                                 "}"
-                                 ""
-                                 ""
-                                 ""
-                                 ""
-                                 "QScrollBar:horizontal{"
-                                 "    background          : rgb(60, 60 ,60);"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    height              : 19px;"
-                                 "    margin              : 0px 20px 0px 20px;"
-                                 "}"
-                                 "QScrollBar::handle:horizontal{"
-                                 "    background          : darkgray;"
-                                 "    min-width           : 20px;"
-                                 "}"
-                                 "QScrollBar::handle:horizontal:hover{"
-                                 "    background          : rgb(150, 150, 150);"
-                                 "}"
-                                 "QScrollBar::add-line:horizontal{"
-                                 "    background          : darkgray;"
-                                 "    width               : 19px;"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    border-right        : 1px solid rgb( 60,  60,  60);"
-                                 "    subcontrol-position : right;"
-                                 "    subcontrol-origin   : margin;"
-                                 "}"
-                                 "QScrollBar::sub-line:horizontal{"
-                                 "    background          : darkgray;"
-                                 "    width               : 19px;"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    border-right        : 1px solid rgb( 60,  60,  60);"
-                                 "    subcontrol-position : left;"
-                                 "    subcontrol-origin   : margin;"
-                                 "}"
-                                 "QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal{"
-                                 "    width               : 3px;"
-                                 "    height              : 3px;"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "}"
-                                 "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal{"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "}"
-                                 ""
-                                 ""
-                                 ""
-                                 ""
-                                 "QScrollBar:vertical{"
-                                 "    background          : rgb(60, 60 ,60);"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    width               : 19px;"
-                                 "    margin              : 20px 0px 20px 0px;"
-                                 "}"
-                                 "QScrollBar::handle:vertical{"
-                                 "    background          : darkgray;"
-                                 "    min-height          : 20px;"
-                                 "}"
-                                 "QScrollBar::handle:vertical:hover{"
-                                 "    background          : rgb(150, 150, 150);"
-                                 "}"
-                                 "QScrollBar::add-line:vertical{"
-                                 "    background          : darkgray;"
-                                 "    height              : 19px;"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    border-bottom       : 1px solid rgb( 60,  60,  60);"
-                                 "    subcontrol-position : bottom;"
-                                 "    subcontrol-origin   : margin;"
-                                 "}"
-                                 "QScrollBar::sub-line:vertical{"
-                                 "    background          : darkgray;"
-                                 "    height              : 19px;"
-                                 "    border              : 1px solid rgb(100, 100, 100);"
-                                 "    border-top          : 1px solid rgb( 60,  60,  60);"
-                                 "    subcontrol-position : top;"
-                                 "    subcontrol-origin   : margin;"
-                                 "}"
-                                 "QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical{"
-                                 "    width               : 3px;"
-                                 "    height              : 3px;"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "}"
-                                 "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical{"
-                                 "    background          : rgb(60, 60, 60);"
-                                 "}");
+    setStyleSheet("QMainWindow{background:rgb(60, 60, 60);}");
+    m_textureList->setStyleSheet(m_styleRegister[StyleSheet::TextureList]);
 }
 
 MainWindow::~MainWindow()
@@ -317,20 +198,11 @@ void MainWindow::removeItemFromTextureList(const QString& textureName)
 
 void MainWindow::createActions()
 {
-    const QString toolBarStyle{"QToolBar{"
-                               "    border:2px ridge rgb(60, 60, 60);"
-                               "}"
-                               "QToolBar::separator{"
-                               "    background-color:rgb(80, 80, 80);"
-                               "    width:1px;"
-                               "}"
-                               "QToolBar::handle{"
-                               "    background-color:rgb(100, 100, 100);"
-                               "    width:2px;"
-                               "}"};
+    const QString toolBarStyle{m_styleRegister[StyleSheet::ToolBar]};
 
     /////////////////////// FILE MENU
     QMenu *fileMenu = menuBar()->addMenu(tr("&File"));
+    menuBar()->setStyleSheet(m_styleRegister[StyleSheet::MenuBar]);
     QToolBar *fileToolBar = addToolBar(tr("File"));
     fileToolBar->setStyleSheet(toolBarStyle);
 
@@ -434,7 +306,8 @@ void MainWindow::createActions()
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    QToolBar *toolsToolBar = addToolBar("Tools");
+    QToolBar *toolsToolBar = new QToolBar{"Tools"};
+    addToolBar(Qt::LeftToolBarArea, toolsToolBar);
     toolsToolBar->setStyleSheet(toolBarStyle);
 
     // SELECTION
@@ -506,96 +379,7 @@ void MainWindow::createMapView()
     m_mapView->holdUndoStack(m_undoStack);
     connect(this, &MainWindow::toolTriggered, m_mapView, &MapView::toolTriggered);
     connect(m_mapView, &MapView::checkTool, this, &MainWindow::checkedTool);
-    m_mapView->setStyleSheet("QGraphicsView{"
-                             "    border              : rgb(100, 100, 100);"
-                             "}"
-                             ""
-                             ""
-                             ""
-                             "QWidget{"
-                             "    background          : rgb(60, 60, 60);"
-                             "}"
-                             ""
-                             ""
-                             ""
-                             "QScrollBar:horizontal{"
-                             "    background          : rgb(60, 60 ,60);"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    height              : 19px;"
-                             "    margin              : 0px 20px 0px 20px;"
-                             "}"
-                             "QScrollBar::handle:horizontal{"
-                             "    background          : darkgray;"
-                             "    min-width           : 20px;"
-                             "}"
-                             "QScrollBar::handle:horizontal:hover{"
-                             "    background          : rgb(150, 150, 150);"
-                             "}"
-                             "QScrollBar::add-line:horizontal{"
-                             "    background          : darkgray;"
-                             "    width               : 19px;"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    border-right        : 1px solid rgb( 60,  60,  60);"
-                             "    subcontrol-position : right;"
-                             "    subcontrol-origin   : margin;"
-                             "}"
-                             "QScrollBar::sub-line:horizontal{"
-                             "    background          : darkgray;"
-                             "    width               : 19px;"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    border-right        : 1px solid rgb( 60,  60,  60);"
-                             "    subcontrol-position : left;"
-                             "    subcontrol-origin   : margin;"
-                             "}"
-                             "QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal{"
-                             "    width               : 3px;"
-                             "    height              : 3px;"
-                             "    background          : rgb(60, 60, 60);"
-                             "}"
-                             "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal{"
-                             "    background          : rgb(60, 60, 60);"
-                             "}"
-                             ""
-                             ""
-                             ""
-                             ""
-                             "QScrollBar:vertical{"
-                             "    background          : rgb(60, 60 ,60);"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    width               : 19px;"
-                             "    margin              : 20px 0px 20px 0px;"
-                             "}"
-                             "QScrollBar::handle:vertical{"
-                             "    background          : darkgray;"
-                             "    min-height          : 20px;"
-                             "}"
-                             "QScrollBar::handle:vertical:hover{"
-                             "    background          : rgb(150, 150, 150);"
-                             "}"
-                             "QScrollBar::add-line:vertical{"
-                             "    background          : darkgray;"
-                             "    height              : 19px;"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    border-bottom       : 1px solid rgb( 60,  60,  60);"
-                             "    subcontrol-position : bottom;"
-                             "    subcontrol-origin   : margin;"
-                             "}"
-                             "QScrollBar::sub-line:vertical{"
-                             "    background          : darkgray;"
-                             "    height              : 19px;"
-                             "    border              : 1px solid rgb(100, 100, 100);"
-                             "    border-top          : 1px solid rgb( 60,  60,  60);"
-                             "    subcontrol-position : top;"
-                             "    subcontrol-origin   : margin;"
-                             "}"
-                             "QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical{"
-                             "    width               : 3px;"
-                             "    height              : 3px;"
-                             "    background          : rgb(60, 60, 60);"
-                             "}"
-                             "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical{"
-                             "    background          : rgb(60, 60, 60);"
-                             "}");
+    m_mapView->setStyleSheet(m_styleRegister[StyleSheet::MapView]);
 }
 
 void MainWindow::createMapScene()
@@ -613,8 +397,8 @@ void MainWindow::createMapScene()
     std::map<NewMapDialog::FieldType, int> defaultMap{};
     defaultMap[NewMapDialog::FieldType::Width]  = 32;
     defaultMap[NewMapDialog::FieldType::Height] = 32;
-    defaultMap[NewMapDialog::FieldType::Rows]   = 6;
-    defaultMap[NewMapDialog::FieldType::Cols]   = 6;
+    defaultMap[NewMapDialog::FieldType::Rows]   = 16;
+    defaultMap[NewMapDialog::FieldType::Cols]   = 16;
     createMapScene(defaultMap);
 }
 
@@ -635,6 +419,7 @@ void MainWindow::createStatusBar()
     // Status Bar is automatically created the first time statusBar() is called
     // This function return a pointer to the main window's qstatusbar
     statusBar()->showMessage(tr("Ready !"));
+    statusBar()->setStyleSheet(m_styleRegister[StyleSheet::StatusBar]);
 }
 
 void MainWindow::createUndoView()
@@ -643,129 +428,19 @@ void MainWindow::createUndoView()
     m_undoView->setWindowTitle(tr("Command List"));
     m_undoView->show();
     m_undoView->setAttribute(Qt::WA_QuitOnClose, false);
-    m_undoView->setStyleSheet("QListView{"
-                              "    background : rgb(60, 60, 60);"
-                              "    border     : 1px solid rgb(100, 100, 100);"
-                              "    color      : rgb(210, 210, 210);"
-                              "}"
-                              ""
-                              ""
-                              ""
-                              "QWidget{"
-                              "    background          : rgb(60, 60, 60);"
-                              "}"
-                              ""
-                              ""
-                              ""
-                              "QScrollBar:horizontal{"
-                              "    background          : rgb(60, 60 ,60);"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    height              : 19px;"
-                              "    margin              : 0px 20px 0px 20px;"
-                              "}"
-                              "QScrollBar::handle:horizontal{"
-                              "    background          : darkgray;"
-                              "    min-width           : 20px;"
-                              "}"
-                              "QScrollBar::handle:horizontal:hover{"
-                              "    background          : rgb(150, 150, 150);"
-                              "}"
-                              "QScrollBar::add-line:horizontal{"
-                              "    background          : darkgray;"
-                              "    width               : 19px;"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    border-right        : 1px solid rgb( 60,  60,  60);"
-                              "    subcontrol-position : right;"
-                              "    subcontrol-origin   : margin;"
-                              "}"
-                              "QScrollBar::sub-line:horizontal{"
-                              "    background          : darkgray;"
-                              "    width               : 19px;"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    border-right        : 1px solid rgb( 60,  60,  60);"
-                              "    subcontrol-position : left;"
-                              "    subcontrol-origin   : margin;"
-                              "}"
-                              "QScrollBar::left-arrow:horizontal, QScrollBar::right-arrow:horizontal{"
-                              "    width               : 3px;"
-                              "    height              : 3px;"
-                              "    background          : rgb(60, 60, 60);"
-                              "}"
-                              "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal{"
-                              "    background          : rgb(60, 60, 60);"
-                              "}"
-                              ""
-                              ""
-                              ""
-                              ""
-                              "QScrollBar:vertical{"
-                              "    background          : rgb(60, 60 ,60);"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    width               : 19px;"
-                              "    margin              : 20px 0px 20px 0px;"
-                              "}"
-                              "QScrollBar::handle:vertical{"
-                              "    background          : darkgray;"
-                              "    min-height          : 20px;"
-                              "}"
-                              "QScrollBar::handle:vertical:hover{"
-                              "    background          : rgb(150, 150, 150);"
-                              "}"
-                              "QScrollBar::add-line:vertical{"
-                              "    background          : darkgray;"
-                              "    height              : 19px;"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    border-bottom       : 1px solid rgb( 60,  60,  60);"
-                              "    subcontrol-position : bottom;"
-                              "    subcontrol-origin   : margin;"
-                              "}"
-                              "QScrollBar::sub-line:vertical{"
-                              "    background          : darkgray;"
-                              "    height              : 19px;"
-                              "    border              : 1px solid rgb(100, 100, 100);"
-                              "    border-top          : 1px solid rgb( 60,  60,  60);"
-                              "    subcontrol-position : top;"
-                              "    subcontrol-origin   : margin;"
-                              "}"
-                              "QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical{"
-                              "    width               : 3px;"
-                              "    height              : 3px;"
-                              "    background          : rgb(60, 60, 60);"
-                              "}"
-                              "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical{"
-                              "    background          : rgb(60, 60, 60);"
-                              "}");
+    m_undoView->setStyleSheet(m_styleRegister[StyleSheet::UndoView]);
 }
 
 void MainWindow::createDockWindows()
 {
     m_viewMenu = menuBar()->addMenu(tr("&View"));
 
-    const QString styleSheet{"QDockWidget::close-button, QDockWidget::float-button{"
-                             "    background    : darkgray;"
-                             "    border        : 1px solid rgb(100, 100, 100);"
-                             "}"
-                             "QDockWidget::close-button:hover{"
-                             "    background    : rgb(220, 40, 40);"
-                             "}"
-                             "QDockWidget::float-button:hover{"
-                             "    background    : rgb(50, 130, 150);"
-                             "}"
-                             "QDockWidget::title{"
-                             "    text-align    : left;"
-                             "    color         : rgb(210, 210, 210);"
-                             "    background    : rgb(60, 60 ,60);"
-                             "    border        : 1px solid rgb(100, 100, 100);"
-                             "    border-bottom : none;"
-                             "}"
-                             "QDockWidget{"
-                             "    color         : rgb(210, 210, 210);"
-                             "    border        : 1px solid rgb(100, 100, 100);"
-                             "}"};
+    const QString styleSheet{m_styleRegister[StyleSheet::DockWidget]};
 
     m_dockTextureList = new QDockWidget{tr("Texture List"), this};
     m_dockTextureList->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_dockTextureList->setWidget(m_textureList);
+    m_dockTextureList->setMinimumHeight(500);
     m_dockTextureList->setMinimumWidth(200);
     m_dockTextureList->setStyleSheet(styleSheet);
     addDockWidget(Qt::RightDockWidgetArea, m_dockTextureList);
@@ -777,10 +452,9 @@ void MainWindow::createDockWindows()
     m_dockUndoView->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
     m_dockUndoView->setWidget(m_undoView);
     m_dockUndoView->setMinimumWidth(200);
-    m_dockUndoView->setMaximumWidth(300);
     m_dockUndoView->setStyleSheet(styleSheet);
     m_dockUndoView->setFloating(false);
-    addDockWidget(Qt::LeftDockWidgetArea, m_dockUndoView);
+    addDockWidget(Qt::RightDockWidgetArea, m_dockUndoView);
     QAction *viewCommandListAct = m_dockUndoView->toggleViewAction();
     m_viewMenu->addAction(viewCommandListAct);
     connect(viewCommandListAct, &QAction::triggered, this, &MainWindow::replaceUndoView);
@@ -844,4 +518,15 @@ void MainWindow::loadFile(const QString& fileName)
     statusBar()->showMessage(tr("Map loaded"), 3000);
 
     m_documentModified = false;
+}
+
+void MainWindow::registerStyleSheet()
+{
+    m_styleRegister.registerStyleSheet("menuBarStyle.css"     , StyleSheet::MenuBar);
+    m_styleRegister.registerStyleSheet("textureListStyle.css" , StyleSheet::TextureList);
+    m_styleRegister.registerStyleSheet("toolBarStyle.css"     , StyleSheet::ToolBar);
+    m_styleRegister.registerStyleSheet("mapViewStyle.css"     , StyleSheet::MapView);
+    m_styleRegister.registerStyleSheet("undoViewStyle.css"    , StyleSheet::UndoView);
+    m_styleRegister.registerStyleSheet("dockWidgetStyle.css"  , StyleSheet::DockWidget);
+    m_styleRegister.registerStyleSheet("statusBarStyle.css"   , StyleSheet::StatusBar);
 }

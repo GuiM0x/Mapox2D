@@ -10,6 +10,7 @@
 #include "tools/datasaver.h"
 #include "tools/dataloader.h"
 #include "tools/utilitytools.h"
+#include "tools/stylesheetregister.h"
 
 #include <map>
 
@@ -80,8 +81,29 @@ private:
     bool saveFile(const QString& fileName);
     void setCurrentFile(const QString& fileName);
     void loadFile(const QString& fileName);
+    void registerStyleSheet();
 
 private:
+    // StyleSheetRegister Class Infos :
+    // ================================
+    //    - Inherits : Singleton class
+    //    - Instancied with static function Singleton<T>::createInstance(Args ...args)
+    //        -> The parameter pack is passed to the constructor of
+    //           T when it's instancied
+    //    - In this case, StyleSheetRegister has only one constructor
+    //        -> StyleSheetRegister(const QString& folderName)
+    //        -> So we pass the folder's name to createInstance(...)'s parameters.
+    //    - Then, to register a css file in the class, simply call :
+    //        -> StyleSheetRegister::registerStyleSheet(const QString& filename, StyleSheet style)
+    //        -> StyleSheet is just an enum
+    //        -> To add new StyleSheet, add it to the StyleSheet enum in StyleSheetRegister
+    //    - To apply a style sheet to a widget, use the overload operator [] :
+    //        -> a_widget->setStyleSheet(m_styleRegitered[StyleSheet::CustomStyle])
+    //
+    // [Warning] : all "*.css" files must be registered in a ".qrc" file
+    StyleSheetRegister m_styleRegister =
+        Singleton<StyleSheetRegister>::createInstance("stylesheets");
+
     MapView        *m_mapView{nullptr};
     MapScene       *m_mapScene{nullptr};
     TextureList    *m_textureList{nullptr};

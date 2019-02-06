@@ -43,7 +43,8 @@ SOURCES += \
     commands/deleteselectioncommand.cpp \
     dialogs/importspritesheetdialog.cpp \
     commands/discardfloatselectioncommand.cpp \
-    commands/removeitemfromtexturelistcommand.cpp
+    commands/removeitemfromtexturelistcommand.cpp \
+    tools/stylesheetregister.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -65,7 +66,9 @@ HEADERS += \
     commands/deleteselectioncommand.h \
     dialogs/importspritesheetdialog.h \
     commands/discardfloatselectioncommand.h \
-    commands/removeitemfromtexturelistcommand.h
+    commands/removeitemfromtexturelistcommand.h \
+    tools/stylesheetregister.h \
+    tools/singleton.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -73,6 +76,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    mapox2d.qrc
+    mapox2d.qrc \
+    stylesheets.qrc
 
 DISTFILES +=
