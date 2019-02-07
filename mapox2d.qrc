@@ -18,5 +18,7 @@
         <file>icons/close.png</file>
         <file>icons/maximize.png</file>
         <file>icons/minimize.png</file>
+        <file>icons/icon2D.png</file>
+        <file>icons/sizeGrip.png</file>
     </qresource>
 </RCC>

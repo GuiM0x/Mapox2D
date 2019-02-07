@@ -4,6 +4,7 @@
 #include "mainwindow.h"
 
 #include <QMainWindow>
+#include <QIcon>
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QMouseEvent>
@@ -18,7 +19,8 @@ class CustomWindow : public QMainWindow
     enum class ButtonType{
         MINIMIZE,
         MAXIMIZE,
-        CLOSE
+        CLOSE,
+        MAX_BUTTONS
     };
 
 public:
@@ -28,30 +30,34 @@ private slots:
     void minimizeClicked();
     void maximizeClicked();
     void closeClicked();
+    // Connected with signal MainWindow::windowTitleChanged(...)
+    void windowTitleChanged(const QString& title);
 
 protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 
 private:
+    void createIconWidget();
     void createTitleBar();
     void createButtons();
-    void createLayout();
 
 private:
-    MainWindow    w{};
-    QWidget      *m_titleBar{nullptr};
-    QLabel        m_title{};
-    QPushButton  *m_buttonMinimize{nullptr};
-    QPushButton  *m_buttonMaximize{nullptr};
-    QPushButton  *m_buttonClose{nullptr};
-    QPoint        m_offsetDrag{};
-    QPoint        m_mousePos{};
-    QRect         m_dragRegion{};
-    bool          m_mouseLeftPress{false};
-    QRect         m_oldGeometry{};
+    MainWindow      w{};
+    QLabel         *m_icon{nullptr};
+    QLabel         *m_title{nullptr};
+    QWidget        *m_titleBar{nullptr};
+    QPushButton    *m_buttonMinimize{nullptr};
+    QPushButton    *m_buttonMaximize{nullptr};
+    QPushButton    *m_buttonClose{nullptr};
+    QPoint          m_offsetDrag{};
+    QPoint          m_mousePos{};
+    QRect           m_dragRegion{};
+    bool            m_mouseLeftPress{false};
+    bool            m_maximized{false};
 };
 
 #endif // CUSTOMWINDOW_H

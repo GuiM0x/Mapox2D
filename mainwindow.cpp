@@ -512,6 +512,7 @@ void MainWindow::setCurrentFile(const QString& fileName)
     if(m_currentFile.isEmpty())
         showName = "Untitled";
     setWindowFilePath(showName + " - Mapox2D");
+    emit windowTitleChanged(StringTools::cutFileName(showName) + " - Mapox2D");
 }
 
 void MainWindow::loadFile(const QString& fileName)

@@ -2,3 +2,8 @@ QWidget{
 	background : rgb(60, 60, 60);
 	color      : rgb(210, 210, 210);
 }
+QSizeGrip{
+	image      : url(:/icons/sizeGrip.png);
+	width      : 16px;
+	height     : 16px;
+}
