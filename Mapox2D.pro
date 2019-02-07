@@ -44,7 +44,8 @@ SOURCES += \
     dialogs/importspritesheetdialog.cpp \
     commands/discardfloatselectioncommand.cpp \
     commands/removeitemfromtexturelistcommand.cpp \
-    tools/stylesheetregister.cpp
+    tools/stylesheetregister.cpp \
+    customwindow.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -68,7 +69,8 @@ HEADERS += \
     commands/discardfloatselectioncommand.h \
     commands/removeitemfromtexturelistcommand.h \
     tools/stylesheetregister.h \
-    tools/singleton.h
+    tools/singleton.h \
+    customwindow.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

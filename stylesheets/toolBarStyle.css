@@ -1,12 +1,11 @@
 QToolBar{
-    border:2px ridge rgb(60, 60, 60);
-	background:rgb(60, 60, 60);
+    border     : 1px solid rgb(100, 100, 100);
+	background : rgb(60, 60, 60);
 }
 QToolBar::separator{
-    background:rgb(80, 80, 80);
-    width:1px;
+    background : rgb(100, 100, 100);
+    width      : 1px;
 }
 QToolBar::handle{
-    background:rgb(100, 100, 100);
-    width:2px;
+    border-left : 2px ridge rgb(100, 100, 100);
 }

@@ -14,5 +14,9 @@
         <file>icons/importTexture.png</file>
         <file>icons/fill.png</file>
         <file>icons/importSpriteSheet.png</file>
+        <file>icons/resizeGrid.png</file>
+        <file>icons/close.png</file>
+        <file>icons/maximize.png</file>
+        <file>icons/minimize.png</file>
     </qresource>
 </RCC>

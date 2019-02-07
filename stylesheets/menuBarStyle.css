@@ -1,6 +1,8 @@
 QMenuBar{
     background     : rgb(60, 60, 60);
     color          : rgb(210, 210, 210);
+	border-left    : 1px solid rgb(100, 100, 100);
+	border-right   : 1px solid rgb(100, 100, 100);
 }
 QMenuBar::item:selected{
     background     : rgb(30, 100, 170);

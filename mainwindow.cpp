@@ -237,6 +237,7 @@ void MainWindow::createActions()
     fileMenu->addAction(saveAsAct);
 
     fileToolBar->addSeparator();
+    fileMenu->addSeparator();
 
     // IMPORT TEXTURE
     QIcon importTextureIcon{":/icons/importTexture.png"};
@@ -283,6 +284,7 @@ void MainWindow::createActions()
     editToolBar->addAction(redoAct);
 
     editMenu->addSeparator();
+    editToolBar->addSeparator();
 
     // COPY
     QAction *copyAct = new QAction{tr("Copy Selection"), this};
@@ -303,6 +305,12 @@ void MainWindow::createActions()
     editMenu->addAction(pasteAct);
 
     editMenu->addSeparator();
+
+    // RESIZE GRID
+    QIcon resizeGridIcon{":/icons/resizeGrid.png"};
+    QAction *resizeGridAct = new QAction{resizeGridIcon, tr("Resize grid")};
+    editMenu->addAction(resizeGridAct);
+    editToolBar->addAction(resizeGridAct);
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
