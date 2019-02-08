@@ -1,5 +1,4 @@
-QWidget{
-	background : rgb(60, 60, 60);
+QStatusBar{
 	color      : rgb(210, 210, 210);
 }
 QSizeGrip{

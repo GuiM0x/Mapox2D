@@ -3,9 +3,6 @@ QListView{
     border     : 1px solid rgb(100, 100, 100);
     color      : rgb(210, 210, 210);
 }
-QWidget{
-    background          : rgb(60, 60, 60);
-}
 QScrollBar:horizontal{
     background          : rgb(60, 60 ,60);
     border              : 1px solid rgb(100, 100, 100);

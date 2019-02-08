@@ -17,5 +17,5 @@ QDockWidget::title{
 }
 QDockWidget{
     color         : rgb(210, 210, 210);
-    border        : 1px solid rgb(100, 100, 100);
+	margin-top    : 4px;
 }

@@ -40,7 +40,6 @@ void NewMapDialog::createForm()
     QVBoxLayout *vLayout = new QVBoxLayout{};
     vLayout->addWidget(m_sizeGroupBox);
     vLayout->addWidget(m_rowColGroupBox);
-    vLayout->setAlignment(Qt::AlignVCenter);
 
     m_form.addRow(vLayout);
 

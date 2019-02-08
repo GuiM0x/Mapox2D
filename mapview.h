@@ -10,6 +10,7 @@
 #include "commands/anchorcommand.h"
 #include "commands/deleteselectioncommand.h"
 #include "commands/discardfloatselectioncommand.h"
+#include "dialogs/resizegriddialog.h"
 #include "tools/utilitytools.h"
 
 #include <map>
@@ -61,6 +62,7 @@ public slots:
     void selectAll();
     // Connected with signal Texture::removeTileFromScene
     void removeTileFromScene(const QString& tileName);
+    void resizeGridTriggered();
 
 private:
     void focusOutEvent(QFocusEvent *event) override;

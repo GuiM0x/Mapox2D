@@ -238,6 +238,20 @@ void MapView::removeTileFromScene(const QString& tileName)
     m_undoStack->push(deleteSelection);
 }
 
+void MapView::resizeGridTriggered()
+{
+    using Rows = int;
+    using Cols = int;
+    MapScene *mapScene = static_cast<MapScene*>(scene());
+    ResizeGridDialog dial{mapScene->rows(), mapScene->cols(), this};
+    std::pair<Rows, Cols> result = dial.processDial();
+    const int rows = std::get<0>(result);
+    const int cols = std::get<1>(result);
+    mapScene->resizeGrid(rows, cols);
+    /*m_undoStack->clear();
+    reset();*/ // DON'T FORGET TO DECOMMENT WHEN resizeGrid will be ok
+}
+
 void MapView::focusOutEvent(QFocusEvent *event)
 {
     if(event->lostFocus()){

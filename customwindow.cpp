@@ -49,8 +49,8 @@ void CustomWindow::mouseMoveEvent(QMouseEvent *event)
     //          - event->screenPos() : refers to the global desktop pos
     //          - event->pos()       : refers to the mouse's pos relative to the widget
 
-    m_mousePos = QPoint{static_cast<int>(event->screenPos().x()),
-                        static_cast<int>(event->screenPos().y())};
+    const QPoint mousePos = QPoint{static_cast<int>(event->screenPos().x()),
+                                   static_cast<int>(event->screenPos().y())};
 
     //          - Even if this event is received only when mouse's boutton is pressed,
     //            we still need to check if mouse button is pressed (especially the left button).
@@ -59,7 +59,7 @@ void CustomWindow::mouseMoveEvent(QMouseEvent *event)
     //            if we don't check mouse button state, the window will be moved and we don't want that :)).
 
     if(m_dragRegion.contains(event->pos()) && m_mouseLeftPress){
-        move(QPoint{m_mousePos - m_offsetDrag});
+        move(QPoint{mousePos - m_offsetDrag});
     } else {
         m_mouseLeftPress = false;
     }
@@ -124,6 +124,7 @@ void CustomWindow::createTitleBar()
                               "}"
                               "QPushButton:pressed{"
                               "    background    : red;"
+                              "    padding       : 2px -2px -2px 2px;"
                               "}"
                               "QPushButton:flat{"
                               "    border        : 1px solid rgb(100, 100, 100);"

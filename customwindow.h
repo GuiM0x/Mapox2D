@@ -54,7 +54,6 @@ private:
     QPushButton    *m_buttonMaximize{nullptr};
     QPushButton    *m_buttonClose{nullptr};
     QPoint          m_offsetDrag{};
-    QPoint          m_mousePos{};
     QRect           m_dragRegion{};
     bool            m_mouseLeftPress{false};
     bool            m_maximized{false};

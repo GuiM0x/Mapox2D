@@ -45,7 +45,8 @@ SOURCES += \
     commands/discardfloatselectioncommand.cpp \
     commands/removeitemfromtexturelistcommand.cpp \
     tools/stylesheetregister.cpp \
-    customwindow.cpp
+    customwindow.cpp \
+    dialogs/resizegriddialog.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -70,7 +71,8 @@ HEADERS += \
     commands/removeitemfromtexturelistcommand.h \
     tools/stylesheetregister.h \
     tools/singleton.h \
-    customwindow.h
+    customwindow.h \
+    dialogs/resizegriddialog.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

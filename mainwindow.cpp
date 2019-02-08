@@ -19,12 +19,18 @@ MainWindow::MainWindow(QWidget *parent)
     createUndoView();
     createDockWindows();
 
-    connect(m_textureList, &QListWidget::itemClicked, m_mapScene, &MapScene::currentTextureSelectedInList);
-    connect(m_undoStack, &QUndoStack::indexChanged, this, &MainWindow::docWasModified);
-    connect(m_textureList, &TextureList::docModified, this, &MainWindow::docWasModified);
-    connect(m_textureList, &TextureList::removeTileFromScene, m_mapView, &MapView::removeTileFromScene);
-    connect(m_textureList, &TextureList::removeItemFromTextureList, this, &MainWindow::removeItemFromTextureList);
-    connect(m_mapScene, &MapScene::triggerTool, m_mapView, &MapView::toolTriggered);
+    connect(m_textureList , &QListWidget::itemClicked,
+            m_mapScene    , &MapScene::currentTextureSelectedInList);
+    connect(m_undoStack   , &QUndoStack::indexChanged,
+            this          , &MainWindow::docWasModified);
+    connect(m_textureList , &TextureList::docModified,
+            this          , &MainWindow::docWasModified);
+    connect(m_textureList , &TextureList::removeTileFromScene,
+            m_mapView     , &MapView::removeTileFromScene);
+    connect(m_textureList , &TextureList::removeItemFromTextureList,
+            this          , &MainWindow::removeItemFromTextureList);
+    connect(m_mapScene    , &MapScene::triggerTool,
+            m_mapView     , &MapView::toolTriggered);
 
     setStyleSheet("QMainWindow{background:rgb(60, 60, 60);}");
     m_textureList->setStyleSheet(m_styleRegister[StyleSheet::TextureList]);
@@ -309,6 +315,7 @@ void MainWindow::createActions()
     // RESIZE GRID
     QIcon resizeGridIcon{":/icons/resizeGrid.png"};
     QAction *resizeGridAct = new QAction{resizeGridIcon, tr("Resize grid")};
+    connect(resizeGridAct, &QAction::triggered, m_mapView, &MapView::resizeGridTriggered);
     editMenu->addAction(resizeGridAct);
     editToolBar->addAction(resizeGridAct);
 

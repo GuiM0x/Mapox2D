@@ -50,6 +50,7 @@ public:
     TileItem* itemByIndex(int index);
     QGraphicsRectItem* focusRect();
     const std::vector<TileItem*>* tiles() const;
+    void resizeGrid(int rows, int cols);
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing
@@ -84,6 +85,10 @@ private:
                          int tileWidth, int tileHeight,
                          const QString& textureName = "",
                          const QBrush brush = QBrush{});
+    void reduceCol(int nbToReduce);
+    void expandCol(int nbToExpand);
+    void reduceRow(int nbToReduce);
+    void expandRow(int nbToExpand);
 
 private:
     std::vector<TileItem*>            m_tiles{};

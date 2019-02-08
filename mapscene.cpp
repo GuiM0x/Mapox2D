@@ -204,6 +204,18 @@ const std::vector<TileItem*>* MapScene::tiles() const
     return &m_tiles;
 }
 
+void MapScene::resizeGrid(int rows, int cols)
+{
+    qDebug() << "MapScene::resizeGrid - Please wait...";
+
+    if(cols < 0 && abs(cols) < m_cols) reduceCol(abs(cols));
+    if(cols > 0)                       expandCol(cols);
+    if(rows < 0 && abs(rows) < m_rows) reduceRow(abs(rows));
+    if(rows > 0)                       expandRow(rows);
+
+    // TO DO : don't forget to update m_rows and m_cols
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->toolTip();
@@ -382,3 +394,28 @@ TileItem* MapScene::createTile(qreal x, qreal y,
     addItem(tile);
     return tile;
 }
+
+void MapScene::reduceCol(int nbToReduce)
+{
+    assert(nbToReduce >= 0);
+    qDebug() << "MapScene::reduceCol by " << nbToReduce;
+}
+
+void MapScene::expandCol(int nbToExpand)
+{
+    assert(nbToExpand >= 0);
+    qDebug() << "MapScene::expandCol by " << nbToExpand;
+}
+
+void MapScene::reduceRow(int nbToReduce)
+{
+    assert(nbToReduce >= 0);
+    qDebug() << "MapScene::reduceRow by " << nbToReduce;
+}
+
+void MapScene::expandRow(int nbToExpand)
+{
+    assert(nbToExpand >= 0);
+    qDebug() << "MapScene::expandRow by " << nbToExpand;
+}
+
