@@ -321,7 +321,7 @@ void MainWindow::createActions()
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
-    QToolBar *toolsToolBar = new QToolBar{"Tools"};
+    QToolBar *toolsToolBar = new QToolBar{"Tools", this};
     addToolBar(Qt::LeftToolBarArea, toolsToolBar);
     toolsToolBar->setStyleSheet(toolBarStyle);
 

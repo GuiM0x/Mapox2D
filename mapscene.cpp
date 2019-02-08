@@ -113,14 +113,14 @@ void MapScene::fillTile(int index, const QString& textureName, bool isUndoComman
 
     QString newName = textureName;
     if(!textureName.isEmpty()){
+        if(scaled.isNull()) qDebug() << textureName << " is Null";
         QPainter painter{&newImage};
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
         painter.drawImage(0, 0, actualImage);
         if(!actualName.isEmpty() && !isUndoCommand){ // Ok we've got a composed image
             newName = actualName + textureName;
             // add the composed brush to texturelist
-            if(!isTileTextureSameAsCurrentSelected(index) &&
-                    !m_textureList->textureAlreadyExists(newName, false)){
+            if(!m_textureList->textureAlreadyExists(newName, false)){
                 auto listWidgetItem = m_textureList->addTexture(QBrush{newImage}, newName);
                 listWidgetItem->setHidden(true);
             }

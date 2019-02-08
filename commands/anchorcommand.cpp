@@ -30,11 +30,11 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
 
 void AnchorCommand::undo()
 {
-    for(const auto& it : m_firstAnchorPos){
+    /*for(const auto& it : m_firstAnchorPos){
         const auto item = std::get<0>(it);
         const QPointF pos = std::get<1>(it);
         item->setPos(pos);
-    }
+    }*/
 
     m_floatSelectionFromView->clear();
     for(const auto& item : m_floatSelectionSaved){
@@ -54,8 +54,8 @@ void AnchorCommand::redo()
     for(const auto& item : *m_floatSelectionFromView){
         m_mapScene->removeItem(item);
     }
-
     m_floatSelectionFromView->clear();
+
     m_oldItemOnMap.clear();
     for(const auto& item : m_floatSelectionSaved){
         const int index = indexByPos(item);

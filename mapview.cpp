@@ -207,7 +207,9 @@ void MapView::selectAll()
         if(itemSelected->pen().style() != Qt::NoPen){
             m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
             itemSelected->setOpacity(0.5);
-            itemSelected->setPen(QPen{Qt::DotLine});
+            QPen pen{Qt::DotLine};
+            pen.setBrush(QBrush{Qt::red});
+            itemSelected->setPen(pen);
         }
     }
 }
