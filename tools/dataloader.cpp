@@ -77,6 +77,7 @@ void DataLoader::createNewMap()
     int tileHeight{};
     int rows{};
     int cols{};
+
     std::size_t indexBeginMatrix{};
     for(std::size_t i = 0; i < m_datas.size(); ++i){
         if(m_datas[i] == "tileWidth=")
@@ -110,8 +111,8 @@ void DataLoader::createNewMap()
             texturesName.push_back(m_datas[i]);
     }
     for(std::size_t i = 0; i < indexOnMatrix.size(); ++i){
-        /*qDebug() << "[" + QString::number(indexOnMatrix[i]) + "] " +
-                    texturesName[i];*/
+        /*qDebug() << "DataLoader::createNewMap - FillTile : "
+                 << "[" << indexOnMatrix[i] << "] " << texturesName[i];*/
         m_mapScene->fillTile(indexOnMatrix[i], texturesName[i]);
     }
 }

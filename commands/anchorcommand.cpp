@@ -19,8 +19,6 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
         if(!item->name().isEmpty()){
             TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
             m_floatSelectionSaved.push_back(tile);
-            // Save first anchor pos
-            m_firstAnchorPos.push_back(std::make_tuple(tile, item->scenePos()));
         }
     }
 
@@ -30,12 +28,6 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
 
 void AnchorCommand::undo()
 {
-    /*for(const auto& it : m_firstAnchorPos){
-        const auto item = std::get<0>(it);
-        const QPointF pos = std::get<1>(it);
-        item->setPos(pos);
-    }*/
-
     m_floatSelectionFromView->clear();
     for(const auto& item : m_floatSelectionSaved){
         m_floatSelectionFromView->push_back(item);

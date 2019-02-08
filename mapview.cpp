@@ -249,9 +249,12 @@ void MapView::resizeGridTriggered()
     std::pair<Rows, Cols> result = dial.processDial();
     const int rows = std::get<0>(result);
     const int cols = std::get<1>(result);
-    mapScene->resizeGrid(rows, cols);
-    /*m_undoStack->clear();
-    reset();*/ // DON'T FORGET TO DECOMMENT WHEN resizeGrid will be ok
+    if(rows != 0 || cols != 0){
+        mapScene->resizeGrid(rows, cols);
+        m_undoStack->clear();
+        reset();
+        // emit documentModified or Command resize ?
+    }
 }
 
 void MapView::focusOutEvent(QFocusEvent *event)

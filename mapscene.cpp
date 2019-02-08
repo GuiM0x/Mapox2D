@@ -109,11 +109,11 @@ void MapScene::fillTile(int index, const QString& textureName, bool isUndoComman
     if(!textureName.isEmpty())
         scaled = m_textureList->getTexture(textureName)
                  .scaled(m_tileSize.width(), m_tileSize.height());
+    //assert(!scaled.isNull());
     QImage newImage = scaled.toImage();
 
     QString newName = textureName;
     if(!textureName.isEmpty()){
-        if(scaled.isNull()) qDebug() << textureName << " is Null";
         QPainter painter{&newImage};
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
         painter.drawImage(0, 0, actualImage);
@@ -349,7 +349,6 @@ void MapScene::clearAllContainers()
 {
     m_tiles.clear();
     m_tilesTexturesNames.clear();
-
     clear();
     m_focusRect = nullptr;
 }
@@ -398,24 +397,66 @@ TileItem* MapScene::createTile(qreal x, qreal y,
 void MapScene::reduceCol(int nbToReduce)
 {
     assert(nbToReduce >= 0);
-    qDebug() << "MapScene::reduceCol by " << nbToReduce;
+    std::vector<TileItem*> tilesToCopy{};
+    for(int i = 0; i < m_rows; ++i){
+        for(int j = 0; j < m_cols - nbToReduce; ++j){
+            auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
+            if(!tile->name().isEmpty()){
+                tile->setIndex(tile->index() - (i*nbToReduce));
+                tilesToCopy.push_back(UtilityTools::copyTile(tile,
+                                                             QSize{m_tileSize.width(), m_tileSize.height()}));
+            }
+        }
+    }
+    createMatrix(m_tileSize.width(), m_tileSize.height(),
+                 m_rows, m_cols - nbToReduce);
+    for(const auto& tile : tilesToCopy){
+        fillTile(tile->index(), tile->name());
+    }
 }
 
 void MapScene::expandCol(int nbToExpand)
 {
     assert(nbToExpand >= 0);
-    qDebug() << "MapScene::expandCol by " << nbToExpand;
+    std::vector<TileItem*> tilesToCopy{};
+    for(int i = 0; i < m_rows; ++i){
+        for(int j = 0; j < m_cols; ++j){
+            auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
+            if(!tile->name().isEmpty()){
+                tile->setIndex(tile->index() + (i*nbToExpand));
+                tilesToCopy.push_back(UtilityTools::copyTile(tile,
+                                                             QSize{m_tileSize.width(), m_tileSize.height()}));
+            }
+        }
+    }
+    createMatrix(m_tileSize.width(), m_tileSize.height(),
+                 m_rows, m_cols + nbToExpand);
+    for(const auto& tile : tilesToCopy){
+        fillTile(tile->index(), tile->name());
+    }
 }
 
 void MapScene::reduceRow(int nbToReduce)
 {
     assert(nbToReduce >= 0);
-    qDebug() << "MapScene::reduceRow by " << nbToReduce;
+    const int totalToRemove = nbToReduce * m_cols;
+    for(int i = 0; i < totalToRemove; ++i){
+        removeItem(m_tiles.back());
+        m_tiles.pop_back();
+        m_tilesTexturesNames.pop_back();
+    }
+    m_rows -= nbToReduce;
 }
 
 void MapScene::expandRow(int nbToExpand)
 {
     assert(nbToExpand >= 0);
-    qDebug() << "MapScene::expandRow by " << nbToExpand;
+    for(int i = 0; i < nbToExpand; ++i){
+        for(int j = 0; j < m_cols; ++j){
+            qreal x = j * m_tileSize.width();
+            qreal y = m_rows * m_tileSize.height();
+            createTile(x, y, m_tileSize.width(), m_tileSize.height());
+        }
+        ++m_rows;
+    }
 }
-

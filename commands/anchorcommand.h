@@ -25,7 +25,6 @@ private:
     QList<TileItem*>                      *m_floatSelectionFromView{nullptr};
     QList<TileItem*>                       m_floatSelectionSaved{};
     QList<std::tuple<int, QString>>        m_oldItemOnMap{};
-    QList<std::tuple<TileItem*, QPointF>>  m_firstAnchorPos{};
 };
 
 #endif // ANCHORCOMMAND_H
