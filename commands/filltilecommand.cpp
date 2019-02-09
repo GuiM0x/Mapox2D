@@ -16,7 +16,7 @@ FillTileCommand::FillTileCommand(MapScene *mapScene, QUndoCommand *parent)
 void FillTileCommand::undo()
 {
     m_mapScene->deleteTile(m_tileIndex);
-    m_mapScene->fillTile(m_tileIndex, m_oldTextureName, true);
+    m_mapScene->fillTile(m_tileIndex, m_oldTextureName, false);
 }
 
 void FillTileCommand::redo()

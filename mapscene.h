@@ -18,6 +18,7 @@
 #include <QUndoCommand>
 #include <QProgressBar>
 #include <QPainter>
+#include <QRegularExpression>
 
 class MapScene : public QGraphicsScene
 {
@@ -38,7 +39,7 @@ public:
     int tileWidth() const;
     int tileHeight() const;
     std::vector<QString>* allTilesName();
-    void fillTile(int index, const QString& textureName, bool isUndoCommand = false);
+    void fillTile(int index, const QString& textureName, bool canCompose = true);
     void fillTile(TileItem* item, const QString& textureName);
     void deleteTile(int index);
     int currentTile() const;
@@ -90,6 +91,8 @@ private:
     void reduceRow(int nbToReduce);
     void expandRow(int nbToExpand);
 
+    QString createComposedName(const QString& currentName);
+
 private:
     std::vector<TileItem*>            m_tiles{};
     std::vector<QString>              m_tilesTexturesNames{};
@@ -107,6 +110,7 @@ private:
     bool                              m_modified{false};
     QGraphicsRectItem                *m_focusRect{nullptr};
     QGraphicsRectItem                *m_pasteSelectionRect{nullptr};
+    unsigned                          m_totalItemsComposed{0};
 };
 
 #endif // MAPSCENE_H

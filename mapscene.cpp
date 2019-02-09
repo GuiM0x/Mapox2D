@@ -94,7 +94,7 @@ std::vector<QString>* MapScene::allTilesName()
 }
 
 // USED BY COMMANDS (FillTileCommand)
-void MapScene::fillTile(int index, const QString& textureName, bool isUndoCommand)
+void MapScene::fillTile(int index, const QString& textureName, bool canCompose)
 {
     // Note : isUndoCommand is here to avoid new texture created in list
     //        when FillTileCommand::undo() is called
@@ -117,11 +117,15 @@ void MapScene::fillTile(int index, const QString& textureName, bool isUndoComman
         QPainter painter{&newImage};
         painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
         painter.drawImage(0, 0, actualImage);
-        if(!actualName.isEmpty() && !isUndoCommand){ // Ok we've got a composed image
-            newName = actualName + textureName;
-            // add the composed brush to texturelist
-            if(!m_textureList->textureAlreadyExists(newName, false)){
+        if(!actualName.isEmpty() && canCompose){ // Ok we've got a composed image
+            newName = createComposedName(textureName);
+            if(!isTileTextureSameAsCurrentSelected(index) &&
+                    !m_textureList->textureAlreadyExists(newName, false)){
+                // add the composed brush to texturelist
                 auto listWidgetItem = m_textureList->addTexture(QBrush{newImage}, newName);
+                ++m_totalItemsComposed;
+                qDebug() << "MapScene::fillTile - "
+                         << "Composed item " << m_totalItemsComposed << "added to texture List";
                 listWidgetItem->setHidden(true);
             }
         }
@@ -311,29 +315,21 @@ bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 {
     if(index > -1){
         std::size_t id = static_cast<std::size_t>(index);
-        //      Compare textureOnMap and textureInList end characters.
-        //      Because when image are composed (few images stacked on the same tile),
-        //      the name automatically concatened (tileOnMapName + tileSelectedInList).
-        //      So, to avoid an infinite filling action, we need to compare end characters
-        //      in these 2 string.
-        //      To do that, we use algo' with reverse iterator.
-        const QString textureOnMap  = m_tilesTexturesNames[id];
-        const QString textureInList = m_currentTextureFileName;
-        QString smallerString = textureOnMap;
-        QString biggerString = textureInList;
-        if(smallerString.size() != biggerString.size()){
-            if(smallerString.size() > biggerString.size()){
-                smallerString = textureInList;
-                biggerString = textureOnMap;
-            }
-        }
-        bool isEndCharacterEqual = std::equal(std::rbegin(smallerString), std::rend(smallerString),
-                                              std::rbegin(biggerString));
-        if(isEndCharacterEqual && !textureOnMap.isEmpty())
-            return true;
 
-    } else {
-        return true;
+        QString textureOnMap  = m_tilesTexturesNames[id];
+        const QString textureInList = m_currentTextureFileName;
+
+        if(textureOnMap == textureInList) return true;
+
+        // If we are here, maybe a composed tile
+        QRegularExpression re{"\\(Composed-\\d*\\)"};
+        QRegularExpressionMatch match1 = re.match(textureOnMap);
+        QRegularExpressionMatch match2 = re.match(textureInList);
+        if(match1.hasMatch() && !match2.hasMatch()){
+            // Erase end tag
+            textureOnMap = textureOnMap.left(textureOnMap.size() - match1.capturedLength());
+        }
+        return textureOnMap == textureInList;
     }
     return false;
 }
@@ -403,8 +399,7 @@ void MapScene::reduceCol(int nbToReduce)
             auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
             if(!tile->name().isEmpty()){
                 tile->setIndex(tile->index() - (i*nbToReduce));
-                tilesToCopy.push_back(UtilityTools::copyTile(tile,
-                                                             QSize{m_tileSize.width(), m_tileSize.height()}));
+                tilesToCopy.push_back(TileItem::copy(tile));
             }
         }
     }
@@ -424,8 +419,7 @@ void MapScene::expandCol(int nbToExpand)
             auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
             if(!tile->name().isEmpty()){
                 tile->setIndex(tile->index() + (i*nbToExpand));
-                tilesToCopy.push_back(UtilityTools::copyTile(tile,
-                                                             QSize{m_tileSize.width(), m_tileSize.height()}));
+                tilesToCopy.push_back(TileItem::copy(tile));
             }
         }
     }
@@ -459,4 +453,19 @@ void MapScene::expandRow(int nbToExpand)
         }
         ++m_rows;
     }
+}
+
+QString MapScene::createComposedName(const QString& currentName)
+{
+    QString tag = "(Composed-" + QString::number(m_totalItemsComposed) + ")";
+    QRegularExpression re{"\\(Composed-\\d*\\)"};
+    QRegularExpressionMatch match = re.match(currentName);
+    QString newName{currentName};
+    if(match.hasMatch()){
+        int capturedLength = match.capturedLength();
+        newName = currentName.left(currentName.size() - capturedLength) + tag;
+    } else {
+        newName += tag;
+    }
+    return newName;
 }

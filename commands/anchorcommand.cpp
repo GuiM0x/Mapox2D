@@ -13,11 +13,9 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
             !m_floatSelectionFromView->empty());
 
     // New item are created to get independant from floatSelection
-    const qreal width  = m_mapScene->tileWidth();
-    const qreal height = m_mapScene->tileHeight();
     for(const auto& item : *m_floatSelectionFromView){
         if(!item->name().isEmpty()){
-            TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
+            TileItem *tile = TileItem::copy(item);
             m_floatSelectionSaved.push_back(tile);
         }
     }
@@ -29,14 +27,14 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
 void AnchorCommand::undo()
 {
     m_floatSelectionFromView->clear();
-    for(const auto& item : m_floatSelectionSaved){
-        m_floatSelectionFromView->push_back(item);
-        m_mapScene->addItem(item);
+    for(const auto& floatItem : m_floatSelectionSaved){
+        m_floatSelectionFromView->push_back(floatItem);
+        m_mapScene->addItem(floatItem);
     }
 
     for(const auto& oldItem : m_oldItemOnMap){
-        const int index = std::get<0>(oldItem);
-        const QString textureName = std::get<1>(oldItem);
+        const int index = oldItem->index();
+        const QString textureName = oldItem->name();
         m_mapScene->fillTile(index, textureName);
     }
 }
@@ -49,11 +47,12 @@ void AnchorCommand::redo()
     m_floatSelectionFromView->clear();
 
     m_oldItemOnMap.clear();
-    for(const auto& item : m_floatSelectionSaved){
-        const int index = indexByPos(item);
-        const auto oldItem = m_mapScene->itemByIndex(index);
-        m_oldItemOnMap.push_back(std::make_tuple(index, oldItem->name()));
-        m_mapScene->fillTile(index, item->name());
+    for(const auto& floatItem : m_floatSelectionSaved){
+        const int index = indexByPos(floatItem);
+        const auto oldItem = TileItem::copy(m_mapScene->itemByIndex(index));
+        m_oldItemOnMap.push_back(oldItem);
+        if(floatItem->name() != oldItem->name())
+            m_mapScene->fillTile(index, floatItem->name());
     }
 
     m_mapScene->triggerTool(true, ToolType::Brush);

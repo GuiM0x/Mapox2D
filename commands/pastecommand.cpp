@@ -13,10 +13,8 @@ PasteCommand::PasteCommand(MapScene *scene,
             copiedTiles != nullptr);
 
     // New item are created to get independant from copiedTiles
-    const qreal width  = m_mapScene->tileWidth();
-    const qreal height = m_mapScene->tileHeight();
     for(const auto& item : *copiedTiles){
-        TileItem *tile = UtilityTools::copyTile(item, QSizeF{width, height});
+        TileItem *tile = TileItem::copy(item);
         m_floatSelectionSaved.push_back(tile);
     }
 

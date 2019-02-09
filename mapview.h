@@ -78,7 +78,6 @@ private:
     void fillTile();
     void shrinkToSelection(const QList<QGraphicsItem*>& itemsSelected);
     void growToSelection(const QList<QGraphicsItem*>& itemsSelected);
-    TileItem* copyTile(TileItem *itemToCopy);
     QRectF pastedSelectionBoundingRect() const;
     bool canDragPastedSelection() const;
     bool canAnchor();

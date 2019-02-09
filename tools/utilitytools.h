@@ -3,6 +3,7 @@
 
 #include "tileitem.h"
 
+#include <QDebug>
 #include <QPointF>
 #include <QSize>
 #include <QPen>
@@ -33,18 +34,6 @@ namespace UtilityTools
             index = (i * cols) + j;
         }
         return index;
-    }
-
-    inline
-    TileItem* copyTile(TileItem *itemToCopy, const QSizeF& size)
-    {
-        TileItem *copiedItem = new TileItem{QRectF{QPointF{0, 0}, size}};
-        copiedItem->setPos(itemToCopy->scenePos());
-        copiedItem->setPen(itemToCopy->pen());
-        copiedItem->setBrush(itemToCopy->brush());
-        copiedItem->setName(itemToCopy->name());
-        copiedItem->setIndex(itemToCopy->index());
-        return copiedItem;
     }
 }
 

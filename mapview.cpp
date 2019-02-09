@@ -410,14 +410,6 @@ void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
     }
 }
 
-TileItem* MapView::copyTile(TileItem *itemToCopy)
-{
-    const MapScene *mapScene = static_cast<MapScene*>(scene());
-    const QSizeF sizeTile{static_cast<qreal>(mapScene->tileWidth()),
-                          static_cast<qreal>(mapScene->tileHeight())};
-    return UtilityTools::copyTile(itemToCopy, sizeTile);
-}
-
 QRectF MapView::pastedSelectionBoundingRect() const
 {
     assert(!m_floatSelection.empty()
@@ -536,7 +528,7 @@ void MapView::copyItemsSelected()
     if(!m_copiedItems.empty()) m_copiedItems.clear();
 
     for(const auto& item : m_originalItemsSelected){
-        m_copiedItems.append(copyTile(std::get<0>(item)));
+        m_copiedItems.append(TileItem::copy(std::get<0>(item)));
     }
 
     std::sort(std::begin(m_copiedItems), std::end(m_copiedItems),

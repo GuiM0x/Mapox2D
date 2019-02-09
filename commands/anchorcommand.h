@@ -21,10 +21,10 @@ public:
 private:
     int indexByPos(TileItem *item) const;
 private:
-    MapScene                              *m_mapScene{nullptr};
-    QList<TileItem*>                      *m_floatSelectionFromView{nullptr};
-    QList<TileItem*>                       m_floatSelectionSaved{};
-    QList<std::tuple<int, QString>>        m_oldItemOnMap{};
+    MapScene               *m_mapScene{nullptr};
+    QList<TileItem*>       *m_floatSelectionFromView{nullptr};
+    QList<TileItem*>        m_floatSelectionSaved{};
+    QList<TileItem*>        m_oldItemOnMap{};
 };
 
 #endif // ANCHORCOMMAND_H

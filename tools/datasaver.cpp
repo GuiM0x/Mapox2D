@@ -53,18 +53,6 @@ void DataSaver::textureToAppData(const QString& fileName)
                 //qDebug() << "File saved : " << newFileName;
             }
         }
-        /*for(auto it = std::begin(*textureMap); it != std::end(*textureMap); ++it){
-            QPixmap texture = it->second;
-            // Correct a bug when no textures was in list and empty name file was created
-            if(!texture.isNull()){
-                QString newFileName = path.path() + "/" + it->first + ".dat";
-                m_texturesNewPath.push_back(newFileName);
-                QFile file{newFileName};
-                file.open(QIODevice::WriteOnly);
-                texture.save(&file, "PNG");
-                //qDebug() << "File saved : " << newFileName;
-            }
-        }*/
     }
 }
 

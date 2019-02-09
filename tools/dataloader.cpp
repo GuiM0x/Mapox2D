@@ -113,6 +113,6 @@ void DataLoader::createNewMap()
     for(std::size_t i = 0; i < indexOnMatrix.size(); ++i){
         /*qDebug() << "DataLoader::createNewMap - FillTile : "
                  << "[" << indexOnMatrix[i] << "] " << texturesName[i];*/
-        m_mapScene->fillTile(indexOnMatrix[i], texturesName[i]);
+        m_mapScene->fillTile(indexOnMatrix[i], texturesName[i], false);
     }
 }

@@ -29,13 +29,15 @@ void FillSelectionCommand::undo()
 {
     for(const auto& item : m_oldItems){
         m_mapScene->deleteTile(std::get<0>(item)->index());
-        m_mapScene->fillTile(std::get<0>(item)->index(), std::get<1>(item), true);
+        m_mapScene->fillTile(std::get<0>(item)->index(), std::get<1>(item), false);
     }
 }
 
 void FillSelectionCommand::redo()
 {
     for(const auto& item : m_itemsSelected){
-        m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName);
+        if(std::get<0>(item)->name() != m_textureName){
+            m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName);
+        }
     }
 }
