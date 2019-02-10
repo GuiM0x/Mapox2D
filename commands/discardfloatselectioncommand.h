@@ -9,7 +9,7 @@ class DiscardFloatSelectionCommand : public QUndoCommand
 {
 public:
     DiscardFloatSelectionCommand(MapScene *mapScene,
-                                const QList<TileItem*> *floatSelection,
+                                 QList<TileItem*> *floatSelection,
                                  QUndoCommand *parent = nullptr);
 
 public:
@@ -18,7 +18,8 @@ public:
 
 private:
     MapScene               *m_mapScene{nullptr};
-    const QList<TileItem*> *m_floatSelectionFromView{nullptr};
+    QList<TileItem*>       *m_floatSelectionFromView{nullptr};
+    QList<TileItem*>        m_copiedSelection{};
 };
 
 #endif // DISCARDFLOATSELECTIONCOMMAND_H

@@ -189,11 +189,12 @@ const std::vector<TileItem*>* MapScene::tiles() const
 void MapScene::resizeGrid(int rows, int cols)
 {
     qDebug() << "MapScene::resizeGrid - Please wait...";
-
-    if(cols < 0 && abs(cols) < m_cols) reduceCol(abs(cols));
+    // First : col op
     if(cols > 0)                       expandCol(cols);
-    if(rows < 0 && abs(rows) < m_rows) reduceRow(abs(rows));
+    if(cols < 0 && abs(cols) < m_cols) reduceCol(abs(cols));
+    // Then : row op
     if(rows > 0)                       expandRow(rows);
+    if(rows < 0 && abs(rows) < m_rows) reduceRow(abs(rows));
 }
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)

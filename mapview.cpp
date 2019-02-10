@@ -106,12 +106,12 @@ void MapView::toolTriggered(bool trigger, ToolType type)
     // IF MOVE TOOL DISABLED AND FLOAT SELECTION NOT EMPTY
     // Command -> Discard Float selection (e.g pasted items)
     if(!m_moveSelectionToolActived && !m_floatSelection.empty()){
-        /*auto mapScene = static_cast<MapScene*>(scene());
+        auto mapScene = static_cast<MapScene*>(scene());
         DiscardFloatSelectionCommand *dfsc = new DiscardFloatSelectionCommand{mapScene,
                                                                               &m_floatSelection};
-        m_undoStack->push(dfsc);*/
+        m_undoStack->push(dfsc);
 
-       // m_undoStack->undo(); <- don't do that !
+       // m_undoStack->undo(); <- don't do that ! Never !
     }
 
     // IF SELECTION TOOL DISABLED
