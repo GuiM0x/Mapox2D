@@ -2,6 +2,7 @@
 #define FILLTILECOMMAND_H
 
 #include "mapscene.h"
+#include "tileitem.h"
 
 #include <QUndoCommand>
 
@@ -15,9 +16,9 @@ public:
     void redo() override;
 
 private:
-    MapScene *m_mapScene{nullptr};
-    QString   m_textureInList{};
-    int       m_tileIndex{};
+    MapScene    *m_mapScene{nullptr};
+    QString      m_textureInList{};
+    int          m_tileIndex{};
 };
 
 #endif // FILLTILECOMMAND_H

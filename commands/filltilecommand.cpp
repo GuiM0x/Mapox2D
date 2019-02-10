@@ -5,8 +5,10 @@ FillTileCommand::FillTileCommand(MapScene *mapScene, QUndoCommand *parent)
 {
     m_mapScene = mapScene;
     assert(m_mapScene != nullptr);
+
     m_textureInList = m_mapScene->currentTextureName();
-    m_tileIndex = m_mapScene->currentTile();
+    m_tileIndex     = m_mapScene->currentTile();
+
     QString infos = "Tile [" + QString::number(m_tileIndex) +
                     "] texture [" + m_textureInList + "] added";
     setText(infos);

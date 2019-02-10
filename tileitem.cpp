@@ -126,6 +126,21 @@ void TileItem::clear()
     setBrush(QBrush{QPixmap{}});
 }
 
+void TileItem::copyLayers(std::stack<Layer> layers)
+{
+    clear();
+    std::stack<TileItem::Layer> copy{};
+    while(!layers.empty()){
+        copy.push(layers.top());
+        layers.pop();
+    }
+    while(!copy.empty()){
+        addLayer(copy.top().name,
+                 copy.top().brush);
+        copy.pop();
+    }
+}
+
 ///// STATIC FUNCTION
 TileItem* TileItem::copy(TileItem* itemToCopy)
 {
@@ -135,18 +150,7 @@ TileItem* TileItem::copy(TileItem* itemToCopy)
     copiedItem->setPen(itemToCopy->pen());
     copiedItem->setName(itemToCopy->name());
     copiedItem->setIndex(itemToCopy->index());
-
-    std::stack<TileItem::Layer> layers = itemToCopy->layers();
-    std::stack<TileItem::Layer> copy{};
-    while(!layers.empty()){
-        copy.push(layers.top());
-        layers.pop();
-    }
-    while(!copy.empty()){
-        copiedItem->addLayer(copy.top().name,
-                             copy.top().brush);
-        copy.pop();
-    }
+    copiedItem->copyLayers(itemToCopy->layers());
 
     return copiedItem;
 }

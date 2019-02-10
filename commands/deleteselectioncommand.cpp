@@ -17,14 +17,15 @@ DeleteSelectionCommand::DeleteSelectionCommand(MapScene *mapScene,
 void DeleteSelectionCommand::undo()
 {
     for(const auto& item : m_tilesRemoved){
-        TileItem *tile = m_mapScene->itemByIndex(item->index());
-        tile->addLayer(item->name(), item->brush());
+        TileItem *tileOnMap = m_mapScene->itemByIndex(item->index());
+        tileOnMap->copyLayers(item->layers());
     }
 }
 
 void DeleteSelectionCommand::redo()
 {
     for(const auto& item : m_tilesRemoved){
-        m_mapScene->deleteTile(item->index());
+        TileItem *tileOnMap = m_mapScene->itemByIndex(item->index());
+        tileOnMap->clear();
     }
 }

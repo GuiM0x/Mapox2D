@@ -39,7 +39,7 @@ public:
     int tileWidth() const;
     int tileHeight() const;
     const std::vector<QString>* allTilesName();
-    void fillTile(int index, const QString& textureName);
+    bool fillTile(int index, const QString& textureName);
     void fillTile(TileItem* item, const QString& textureName);
     void removeLastLayer(int index);
     void deleteTile(int index);

@@ -36,6 +36,7 @@ public:
     std::stack<Layer> layers() const;
     bool canAddLayer(const QString& textureName) const;
     void clear();
+    void copyLayers(std::stack<Layer> layers);
 
     static TileItem* copy(TileItem* item);
 

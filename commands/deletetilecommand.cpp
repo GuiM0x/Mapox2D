@@ -15,12 +15,12 @@ DeleteTileCommand::DeleteTileCommand(MapScene* mapScene,
 
 void DeleteTileCommand::undo()
 {
-    TileItem *tile = m_mapScene->itemByIndex(m_tileIndex);
-    tile->addLayer(m_tileRemoved->name(), m_tileRemoved->brush(), true);
+    TileItem *tileOnMap = m_mapScene->itemByIndex(m_tileIndex);
+    tileOnMap->copyLayers(m_tileRemoved->layers());
 }
 
 void DeleteTileCommand::redo()
 {
-    TileItem *tile = m_mapScene->itemByIndex(m_tileIndex);
-    tile->removeLastLayer();
+    TileItem *tileOnMap = m_mapScene->itemByIndex(m_tileIndex);
+    tileOnMap->clear();
 }

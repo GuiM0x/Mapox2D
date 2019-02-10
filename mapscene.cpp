@@ -94,7 +94,7 @@ const std::vector<QString>* MapScene::allTilesName()
 }
 
 // USED BY COMMANDS (FillTileCommand)
-void MapScene::fillTile(int index, const QString& textureName)
+bool MapScene::fillTile(int index, const QString& textureName)
 {
     assert(index >= 0 && index < m_rows*m_cols);
     auto tile = itemByIndex(index);
@@ -107,7 +107,9 @@ void MapScene::fillTile(int index, const QString& textureName)
         tile->addLayer(textureName, QBrush{scaled});
         const std::size_t id = static_cast<std::size_t>(index);
         m_tilesTexturesNames[id] = tile->name();
+        return true; // Ok, layer has been added to tile
     }
+    return false; // Same layer or empty name, operation aborded
 }
 
 // USED BY COMMANDS (FillSelectionCommand)
