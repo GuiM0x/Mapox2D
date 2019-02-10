@@ -16,10 +16,9 @@ public:
     void redo() override;
 
 private:
-    MapScene *m_mapScene{nullptr};
-    QString   m_textureName{};
-    int       m_tileIndex{};
-    QBrush    m_brush{};
+    MapScene   *m_mapScene{nullptr};
+    int         m_tileIndex{};
+    TileItem   *m_tileRemoved{};
 };
 
 #endif // DELETETILECOMMAND_H

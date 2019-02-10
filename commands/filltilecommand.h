@@ -17,7 +17,6 @@ public:
 private:
     MapScene *m_mapScene{nullptr};
     QString   m_textureInList{};
-    //QString   m_oldTextureName{};
     int       m_tileIndex{};
 };
 
