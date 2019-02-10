@@ -8,11 +8,10 @@
 #include <vector>
 
 #include <QDebug>
-#include <QObject>
 #include <QStandardPaths>
 #include <QDir>
-#include <QMessageBox>
 #include <QFile>
+#include <QMessageBox>
 
 class DataSaver
 {
@@ -22,17 +21,22 @@ public:
     bool saveAllDatas(const QString& fileName);
 
 private:
-    void textureToAppData(const QString& fileName);
-    void matrixToData();
+    void textureListToData();
+    void gridToData();
     bool dataToFile() const;
+    QDir createAppDataFolder(const QString& name);
 
 private:
     MapScene             *m_mapScene{nullptr};
     TextureList          *m_textureList{nullptr};
-    std::vector<QString>  m_texturesNewPath{};
     QString               m_fullPathSaveFile{};
     QString               m_folderProjectName{};
-    std::vector<QString>  m_matrixDatas{};
+    int                   m_rows{};
+    int                   m_cols{};
+    int                   m_tileWidth{};
+    int                   m_tileHeight{};
+
+    std::vector<QString>  m_datas{};
 };
 
 #endif // DATASAVER_H

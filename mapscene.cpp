@@ -88,54 +88,26 @@ int MapScene::tileHeight() const
     return m_tileSize.height();
 }
 
-std::vector<QString>* MapScene::allTilesName()
+const std::vector<QString>* MapScene::allTilesName()
 {
     return &m_tilesTexturesNames;
 }
 
 // USED BY COMMANDS (FillTileCommand)
-void MapScene::fillTile(int index, const QString& textureName, bool canCompose)
+void MapScene::fillTile(int index, const QString& textureName)
 {
-    // Note : isUndoCommand is here to avoid new texture created in list
-    //        when FillTileCommand::undo() is called
-
     assert(index >= 0 && index < m_rows*m_cols);
-
     auto tile = itemByIndex(index);
-    QImage actualImage = tile->brush().textureImage();
-    const QString actualName = tile->name();
+    assert(tile != nullptr);
 
-    QPixmap scaled{};
-    if(!textureName.isEmpty())
+    if(!textureName.isEmpty() && tile->canAddLayer(textureName)){
+        QPixmap scaled{};
         scaled = m_textureList->getTexture(textureName)
                  .scaled(m_tileSize.width(), m_tileSize.height());
-    //assert(!scaled.isNull());
-    QImage newImage = scaled.toImage();
-
-    QString newName = textureName;
-    if(!textureName.isEmpty()){
-        QPainter painter{&newImage};
-        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-        painter.drawImage(0, 0, actualImage);
-        if(!actualName.isEmpty() && canCompose){ // Ok we've got a composed image
-            newName = createComposedName(textureName);
-            if(!isTileTextureSameAsCurrentSelected(index) &&
-                    !m_textureList->textureAlreadyExists(newName, false)){
-                // add the composed brush to texturelist
-                auto listWidgetItem = m_textureList->addTexture(QBrush{newImage}, newName);
-                ++m_totalItemsComposed;
-                qDebug() << "MapScene::fillTile - "
-                         << "Composed item " << m_totalItemsComposed << "added to texture List";
-                listWidgetItem->setHidden(true);
-            }
-        }
+        tile->addLayer(textureName, QBrush{scaled});
+        const std::size_t id = static_cast<std::size_t>(index);
+        m_tilesTexturesNames[id] = tile->name();
     }
-
-    const std::size_t id = static_cast<std::size_t>(index);
-    QBrush brush{newImage};
-    m_tiles[id]->setBrush(brush);
-    m_tiles[id]->setName(newName);
-    m_tilesTexturesNames[id] = newName;
 }
 
 // USED BY COMMANDS (FillSelectionCommand)
@@ -146,14 +118,20 @@ void MapScene::fillTile(TileItem *item, const QString& textureName)
 }
 
 // USED BY COMMANDS
+void MapScene::removeLastLayer(int index)
+{
+    TileItem *tile = itemByIndex(index);
+    tile->removeLastLayer();
+}
+
+// USED BY COMMANDS
 void MapScene::deleteTile(int index)
 {
-    if(index != -1){
-        std::size_t id = static_cast<std::size_t>(index);
-        m_tiles[id]->setBrush(QBrush{QPixmap{}});
-        m_tiles[id]->setName("");
-        m_tilesTexturesNames[id] = "";
-    }
+    assert(index >= 0 && index < m_rows*m_cols);
+    std::size_t id = static_cast<std::size_t>(index);
+    TileItem *tile = m_tiles[id];
+    tile->clear();
+    m_tilesTexturesNames[id] = "";
 }
 
 int MapScene::currentTile() const
@@ -190,7 +168,7 @@ QPointF MapScene::focusRectPos() const
     return pos;
 }
 
-TileItem* MapScene::itemByIndex(int index)
+TileItem* MapScene::itemByIndex(int index) const
 {
     if(index < 0 || index >= static_cast<int>(m_tiles.size()))
         throw(std::logic_error{"MapScene::itemByIndex - index Out of range"});
@@ -216,8 +194,6 @@ void MapScene::resizeGrid(int rows, int cols)
     if(cols > 0)                       expandCol(cols);
     if(rows < 0 && abs(rows) < m_rows) reduceRow(abs(rows));
     if(rows > 0)                       expandRow(rows);
-
-    // TO DO : don't forget to update m_rows and m_cols
 }
 
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
@@ -315,20 +291,8 @@ bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 {
     if(index > -1){
         std::size_t id = static_cast<std::size_t>(index);
-
         QString textureOnMap  = m_tilesTexturesNames[id];
         const QString textureInList = m_currentTextureFileName;
-
-        if(textureOnMap == textureInList) return true;
-
-        // If we are here, maybe a composed tile
-        QRegularExpression re{"\\(Composed-\\d*\\)"};
-        QRegularExpressionMatch match1 = re.match(textureOnMap);
-        QRegularExpressionMatch match2 = re.match(textureInList);
-        if(match1.hasMatch() && !match2.hasMatch()){
-            // Erase end tag
-            textureOnMap = textureOnMap.left(textureOnMap.size() - match1.capturedLength());
-        }
         return textureOnMap == textureInList;
     }
     return false;
@@ -336,9 +300,7 @@ bool MapScene::isTileTextureSameAsCurrentSelected(int index) const
 
 void MapScene::fillTile(int index)
 {
-    if(canFillTile(index)){
-        fillTile(index, m_currentTextureFileName);
-    }
+    fillTile(index, m_currentTextureFileName);
 }
 
 void MapScene::clearAllContainers()
@@ -381,9 +343,8 @@ TileItem* MapScene::createTile(qreal x, qreal y,
     pen.setBrush(QBrush{QColor{135, 135, 135}});
     tile->setPen(pen);
     tile->setPos(x, y);
-    tile->setName(textureName);
     tile->setIndex(static_cast<int>(m_tiles.size()));
-    tile->setBrush(brush);
+    tile->addLayer(textureName, brush);
     m_tilesTexturesNames.push_back(textureName);
     m_tiles.push_back(tile);
     addItem(tile);
@@ -393,40 +354,42 @@ TileItem* MapScene::createTile(qreal x, qreal y,
 void MapScene::reduceCol(int nbToReduce)
 {
     assert(nbToReduce >= 0);
-    std::vector<TileItem*> tilesToCopy{};
+    std::vector<TileItem*> copiedTiles{};
     for(int i = 0; i < m_rows; ++i){
         for(int j = 0; j < m_cols - nbToReduce; ++j){
             auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
             if(!tile->name().isEmpty()){
                 tile->setIndex(tile->index() - (i*nbToReduce));
-                tilesToCopy.push_back(TileItem::copy(tile));
+                copiedTiles.push_back(TileItem::copy(tile));
             }
         }
     }
     createMatrix(m_tileSize.width(), m_tileSize.height(),
                  m_rows, m_cols - nbToReduce);
-    for(const auto& tile : tilesToCopy){
-        fillTile(tile->index(), tile->name());
+    for(const auto& copy : copiedTiles){
+        TileItem *itemOnMap = itemByIndex(copy->index());
+        itemOnMap->addLayer(copy->name(), copy->brush());
     }
 }
 
 void MapScene::expandCol(int nbToExpand)
 {
     assert(nbToExpand >= 0);
-    std::vector<TileItem*> tilesToCopy{};
+    std::vector<TileItem*> copiedTiles{};
     for(int i = 0; i < m_rows; ++i){
         for(int j = 0; j < m_cols; ++j){
             auto tile = m_tiles[static_cast<std::size_t>(i*m_cols+j)];
             if(!tile->name().isEmpty()){
                 tile->setIndex(tile->index() + (i*nbToExpand));
-                tilesToCopy.push_back(TileItem::copy(tile));
+                copiedTiles.push_back(TileItem::copy(tile));
             }
         }
     }
     createMatrix(m_tileSize.width(), m_tileSize.height(),
                  m_rows, m_cols + nbToExpand);
-    for(const auto& tile : tilesToCopy){
-        fillTile(tile->index(), tile->name());
+    for(const auto& copy : copiedTiles){
+        TileItem *itemOnMap = itemByIndex(copy->index());
+        itemOnMap->addLayer(copy->name(), copy->brush());
     }
 }
 
@@ -453,19 +416,4 @@ void MapScene::expandRow(int nbToExpand)
         }
         ++m_rows;
     }
-}
-
-QString MapScene::createComposedName(const QString& currentName)
-{
-    QString tag = "(Composed-" + QString::number(m_totalItemsComposed) + ")";
-    QRegularExpression re{"\\(Composed-\\d*\\)"};
-    QRegularExpressionMatch match = re.match(currentName);
-    QString newName{currentName};
-    if(match.hasMatch()){
-        int capturedLength = match.capturedLength();
-        newName = currentName.left(currentName.size() - capturedLength) + tag;
-    } else {
-        newName += tag;
-    }
-    return newName;
 }

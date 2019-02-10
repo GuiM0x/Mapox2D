@@ -7,52 +7,57 @@ AnchorCommand::AnchorCommand(MapScene *mapScene,
       m_mapScene{mapScene},
       m_floatSelectionFromView{floatSelection}
 {
+    // Warning : don't use index of float item
+    //           -> use index by pos instead
 
     assert(m_mapScene != nullptr &&
             m_floatSelectionFromView != nullptr &&
             !m_floatSelectionFromView->empty());
 
-    // New item are created to get independant from floatSelection
-    for(const auto& item : *m_floatSelectionFromView){
-        if(!item->name().isEmpty()){
-            TileItem *tile = TileItem::copy(item);
-            m_floatSelectionSaved.push_back(tile);
-        }
-    }
-
     QString infos = "Anchor Selection\nanchor selection";
     setText(infos);
+
+    for(const auto& item : *m_floatSelectionFromView){
+        // Selection copied
+        m_copiedSelection.push_back(TileItem::copy(item));
+        // Item on map copied
+        const int index = indexByPos(item);
+        TileItem *copy = TileItem::copy(m_mapScene->itemByIndex(index));
+        m_copiedItemOnMap.push_back(copy);
+    }
 }
 
 void AnchorCommand::undo()
 {
+    // Retrieve float selection
     m_floatSelectionFromView->clear();
-    for(const auto& floatItem : m_floatSelectionSaved){
-        m_floatSelectionFromView->push_back(floatItem);
-        m_mapScene->addItem(floatItem);
+    for(const auto& copy : m_copiedSelection){
+        m_floatSelectionFromView->push_back(copy);
+        m_mapScene->addItem(copy);
     }
 
-    for(const auto& oldItem : m_oldItemOnMap){
-        const int index = oldItem->index();
-        const QString textureName = oldItem->name();
-        m_mapScene->fillTile(index, textureName);
+    // Remove last layer
+    for(auto& item : m_copiedItemOnMap){
+        TileItem *tile = m_mapScene->itemByIndex(indexByPos(item));
+        tile->removeLastLayer();
     }
+
+    m_mapScene->triggerTool(true, ToolType::Brush);
 }
 
 void AnchorCommand::redo()
 {
+    // Clear float selection
     for(const auto& item : *m_floatSelectionFromView){
-        m_mapScene->removeItem(item);
+        if(item->scene() != nullptr)
+            m_mapScene->removeItem(item);
     }
     m_floatSelectionFromView->clear();
 
-    m_oldItemOnMap.clear();
-    for(const auto& floatItem : m_floatSelectionSaved){
-        const int index = indexByPos(floatItem);
-        const auto oldItem = TileItem::copy(m_mapScene->itemByIndex(index));
-        m_oldItemOnMap.push_back(oldItem);
-        if(floatItem->name() != oldItem->name())
-            m_mapScene->fillTile(index, floatItem->name());
+    // Anchor layer
+    for(auto& item : m_copiedSelection){
+        TileItem *tile = m_mapScene->itemByIndex(indexByPos(item));
+        tile->addLayer(item->name(), item->brush(), true);
     }
 
     m_mapScene->triggerTool(true, ToolType::Brush);

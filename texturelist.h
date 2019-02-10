@@ -38,7 +38,6 @@ protected:
 
 public:
     QListWidgetItem* addTexture(const QString& fileName, bool fromLoadFile = false);
-    QListWidgetItem* addTexture(const QBrush& brush, const QString& textureName);
     void addTexture(const QList<QPixmap>& textures, const QString& fileName);
     QPixmap getTexture(const QString& textureName);
     std::map<QString, QPixmap>* textureList();

@@ -8,7 +8,6 @@
 class FillSelectionCommand : public QUndoCommand
 {
     using ItemsSelected = std::vector<std::tuple<TileItem*, QPen>>;
-    using OldItems = std::vector<std::tuple<TileItem*, QString>>;
 
 public:
     FillSelectionCommand(MapScene *mapScene,
@@ -24,7 +23,6 @@ private:
     MapScene      *m_mapScene{nullptr};
     QString        m_textureName{""};
     ItemsSelected  m_itemsSelected{};
-    OldItems       m_oldItems{};
 };
 
 #endif // FILLSELECTIONCOMMAND_H

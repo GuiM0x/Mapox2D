@@ -19,6 +19,7 @@ private:
     MapScene *m_mapScene{nullptr};
     QString   m_textureName{};
     int       m_tileIndex{};
+    QBrush    m_brush{};
 };
 
 #endif // DELETETILECOMMAND_H

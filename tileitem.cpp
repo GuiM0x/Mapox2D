@@ -38,16 +38,27 @@ void TileItem::setName(const QString& name)
     m_name = name;
 }
 
-bool TileItem::addLayer(const QString& textureName, const QBrush& brush)
+bool TileItem::addLayer(const QString& textureName,
+                        const QBrush& brush,
+                        bool forceCompose)
 {
+    // Note : forceCompose is used by AnchorCommand::redo().
+    //        It forces composing because when AnchorCommand::undo(),
+    //        it simply removes the last layer. So we must have same
+    //        'z-index' on layer when anchor.
+
+    m_name = textureName;
+
     bool added{false};
-    if(!m_layers.empty() && m_layers.top().name != textureName){
+    if(!m_layers.empty() &&
+            (m_layers.top().name != textureName || forceCompose)){
         m_layers.push(Layer{textureName, brush});
         composeImage(brush);
         added = true;
     }
     if(m_layers.empty()){
         m_layers.push(Layer{textureName, brush});
+        m_composed.push(brush);
         setBrush(brush);
         added = true;
     }
@@ -56,13 +67,17 @@ bool TileItem::addLayer(const QString& textureName, const QBrush& brush)
 
 void TileItem::removeLastLayer()
 {
-    if(!m_layers.empty())
+    if(!m_layers.empty()){
         m_layers.pop();
-}
-
-bool TileItem::isComposed() const
-{
-    return m_layers.size() > 1;
+    }
+    if(!m_composed.empty()){
+        m_composed.pop();
+        if(!m_composed.empty())
+            setBrush(m_composed.top());
+    }
+    if(m_layers.empty()){
+        clear();
+    }
 }
 
 int TileItem::layerCount() const
@@ -82,18 +97,36 @@ void TileItem::setBrush(const QBrush& brush)
 
 void TileItem::composeImage(const QBrush &brush)
 {
-    assert(!m_layers.empty());
+    assert(!m_layers.empty() && !m_composed.empty());
 
     QImage newImage    = brush.textureImage();
-    QImage actualImage = m_layers.top().brush.textureImage();
+    QImage actualImage = m_composed.top().textureImage();
 
-    QPainter painter{&newImage};
-    painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-    painter.drawImage(0, 0, actualImage);
+    if(!actualImage.isNull()){
+        QPainter painter{&newImage};
+        painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+        painter.drawImage(0, 0, actualImage);
+    }
 
-    setBrush(QBrush{newImage});
+    const QBrush newBrush{newImage};
+    m_composed.push(newBrush);
+    setBrush(newBrush);
 }
 
+bool TileItem::canAddLayer(const QString& textureName) const
+{
+    return m_layers.empty() || (m_layers.top().name != textureName);
+}
+
+void TileItem::clear()
+{
+    m_layers = std::stack<Layer>{};
+    m_composed = std::stack<QBrush>{};
+    m_name = "";
+    setBrush(QBrush{QPixmap{}});
+}
+
+///// STATIC FUNCTION
 TileItem* TileItem::copy(TileItem* itemToCopy)
 {
     const QSizeF size = itemToCopy->rect().size();
@@ -103,9 +136,7 @@ TileItem* TileItem::copy(TileItem* itemToCopy)
     copiedItem->setName(itemToCopy->name());
     copiedItem->setIndex(itemToCopy->index());
 
-    copiedItem->setBrush(itemToCopy->brush());
-
-    /*std::stack<TileItem::Layer> layers = itemToCopy->layers();
+    std::stack<TileItem::Layer> layers = itemToCopy->layers();
     std::stack<TileItem::Layer> copy{};
     while(!layers.empty()){
         copy.push(layers.top());
@@ -115,7 +146,7 @@ TileItem* TileItem::copy(TileItem* itemToCopy)
         copiedItem->addLayer(copy.top().name,
                              copy.top().brush);
         copy.pop();
-    }*/
+    }
 
     return copiedItem;
 }

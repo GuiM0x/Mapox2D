@@ -38,9 +38,10 @@ public:
     int cols() const;
     int tileWidth() const;
     int tileHeight() const;
-    std::vector<QString>* allTilesName();
-    void fillTile(int index, const QString& textureName, bool canCompose = true);
+    const std::vector<QString>* allTilesName();
+    void fillTile(int index, const QString& textureName);
     void fillTile(TileItem* item, const QString& textureName);
+    void removeLastLayer(int index);
     void deleteTile(int index);
     int currentTile() const;
     QString currentTextureName() const;
@@ -48,7 +49,7 @@ public:
     QPointF mousePosition() const;
     QPointF mouseMoveVector() const;
     QPointF focusRectPos() const;
-    TileItem* itemByIndex(int index);
+    TileItem* itemByIndex(int index) const;
     QGraphicsRectItem* focusRect();
     const std::vector<TileItem*>* tiles() const;
     void resizeGrid(int rows, int cols);

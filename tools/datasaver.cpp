@@ -4,81 +4,76 @@ DataSaver::DataSaver(MapScene *mapScene, TextureList *textureList)
     : m_mapScene{mapScene}, m_textureList{textureList}
 {
     assert(m_mapScene != nullptr && m_textureList != nullptr);
+    m_rows       = m_mapScene->rows();
+    m_cols       = m_mapScene->cols();
+    m_tileWidth  = m_mapScene->tileWidth();
+    m_tileHeight = m_mapScene->tileHeight();
 }
 
 bool DataSaver::saveAllDatas(const QString& fileName)
 {
-    //qDebug() << "File path selected : " << fileName;
-    textureToAppData(fileName);
-    matrixToData();
-    if(dataToFile())
-        return true;
-    return false;
-}
-
-void DataSaver::textureToAppData(const QString& fileName)
-{
     // fileName is the path selected by user to save .m2x
-    // - cut the name to create folder with the project name
-    // - Then add to path to create the folder
     m_fullPathSaveFile = fileName;
-
-    const QString cutFromPath = StringTools::cutFileName(fileName);
+    const QString cutFromPath = StringTools::cutFileName(m_fullPathSaveFile);
     const QString projectName = StringTools::cutExtensionFileName(cutFromPath);
     m_folderProjectName = projectName;
+    m_datas.push_back("projectName=" + projectName);
 
-    QDir path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
-            "/" + projectName + "/textures/";
-    if(!path.exists()){
-        path.mkpath(path.path());
-    } else {
-        path.removeRecursively();
-        path.mkpath(path.path());
-    }
+    textureListToData();
+    gridToData();
 
-    std::map<QString, QPixmap> textureMap = *m_textureList->textureList();
+    return dataToFile();
+}
+
+void DataSaver::textureListToData()
+{
+    QDir path = createAppDataFolder(m_folderProjectName + "/texturelist/");
+
+    QString tmp = "texturesInListPath=";
+
     QList<QListWidgetItem*> widgetItems = m_textureList->widgetItems();
-    if(!textureMap.empty()){
+    if(!widgetItems.isEmpty()){
         for(const auto& item : widgetItems){
             const QString textureName{item->toolTip()};
-            QPixmap texture = textureMap[textureName];
+            QPixmap texture = m_textureList->getTexture(textureName);
             // Correct a bug when no textures was in list and empty name file was created
             if(!texture.isNull()){
-                const QString ext = (item->isHidden()) ? ".hide" : ".dat";
-                QString newFileName = path.path() + "/" + textureName + ext;
-                m_texturesNewPath.push_back(newFileName);
+                QString newFileName = path.path() + "/" + textureName + ".dat";
                 QFile file{newFileName};
                 file.open(QIODevice::WriteOnly);
                 texture.save(&file, "PNG");
-                //qDebug() << "File saved : " << newFileName;
+                tmp += (newFileName + "#");
             }
         }
     }
+
+    m_datas.push_back(tmp);
 }
 
-void DataSaver::matrixToData()
+void DataSaver::gridToData()
 {
-    int rows = m_mapScene->rows();
-    int cols = m_mapScene->cols();
-    int tileWidth = m_mapScene->tileWidth();
-    int tileHeight = m_mapScene->tileHeight();
+    const QDir path = createAppDataFolder(m_folderProjectName + "/maptextures/");
+    const std::vector<TileItem*> *allTiles = m_mapScene->tiles();
 
-    m_matrixDatas.push_back("tileWidth=");
-    m_matrixDatas.push_back(QString::number(tileWidth));
-    m_matrixDatas.push_back("tileHeight=");
-    m_matrixDatas.push_back(QString::number(tileHeight));
-    m_matrixDatas.push_back("rows=");
-    m_matrixDatas.push_back(QString::number(rows));
-    m_matrixDatas.push_back("cols=");
-    m_matrixDatas.push_back(QString::number(cols));
-    m_matrixDatas.push_back("matrix=");
+    m_datas.push_back("tileWidth="  + QString::number(m_tileWidth));
+    m_datas.push_back("tileHeight=" + QString::number(m_tileHeight));
+    m_datas.push_back("rows="       + QString::number(m_rows));
+    m_datas.push_back("cols="       + QString::number(m_cols));
 
-    std::vector<QString> *allTilesName = m_mapScene->allTilesName();
-    for(std::size_t i = 0; i < allTilesName->size(); ++i){
-        const QString textureName = (*allTilesName)[i];
+    for(const auto& tile : *allTiles){
+        const int           index = tile->index();
+        const QString textureName = tile->name();
+        const QPixmap     texture = tile->brush().texture();
         if(!textureName.isEmpty()){
-            m_matrixDatas.push_back(QString::number(i));
-            m_matrixDatas.push_back(textureName);
+            QString hashTextureName = UtilityTools::createRandomKey(20);
+            QString newFileName = path.path() + "/" + hashTextureName + ".dat";
+            QFile file{newFileName};
+            file.open(QIODevice::WriteOnly);
+            texture.save(&file, "PNG");
+            const QString data = QString::number(index) + "#"
+                                 + textureName + "#"
+                                 + newFileName;
+            m_datas.push_back(data);
         }
     }
 }
@@ -96,16 +91,22 @@ bool DataSaver::dataToFile() const
 
     // Prepare to write in file
     QDataStream out{&file};
-    out << QString("project="); // implicit break line
-    out << QString(m_folderProjectName); // implicit break line
-    out << QString("texturesPath="); // implicit break line
-    for(const auto& x : m_texturesNewPath){
-        out << QString(x); // implicit break line
-    }
-    for(const auto& x : m_matrixDatas){
-        out << QString(x); // implicit break line
+    for(const auto& data : m_datas){
+        out << QString(data); // implicit break line
+    } 
+    return true;
+}
+
+QDir DataSaver::createAppDataFolder(const QString& name)
+{
+    QDir path = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/" + name;
+    if(!path.exists()){
+        path.mkpath(path.path());
+    } else {
+        path.removeRecursively();
+        path.mkpath(path.path());
     }
 
-    return true;
+    return path;
 }
 

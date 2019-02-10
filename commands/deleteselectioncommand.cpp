@@ -1,43 +1,30 @@
 #include "deleteselectioncommand.h"
 
 DeleteSelectionCommand::DeleteSelectionCommand(MapScene *mapScene,
-                                               ItemsSelected *itemsSelected,
+                                               const ItemsSelected *itemsSelected,
                                                QUndoCommand *parent)
     : QUndoCommand{parent}
 {
     m_mapScene = mapScene;
-    m_tilesSelected = itemsSelected;
-    assert(mapScene != nullptr && m_tilesSelected != nullptr);
+    assert(mapScene != nullptr && itemsSelected != nullptr);
     QString infos = "Selection deleted\ndelete selection";
     setText(infos);
-    for(const auto& it : *m_tilesSelected){
-        auto item = std::get<0>(it);
-        const QPen pen = std::get<1>(it);
-        const QString tileName = item->name();
-        const auto tuple = std::make_tuple(item, pen, tileName);
-        m_tilesRemoved.push_back(tuple);
+    for(const auto& item : *itemsSelected){
+        m_tilesRemoved.push_back(TileItem::copy(std::get<0>(item)));
     }
 }
 
 void DeleteSelectionCommand::undo()
 {
-    for(const auto& it : m_tilesRemoved){
-        auto item = std::get<0>(it);
-        const QPen pen = std::get<1>(it);
-        item->setPen(pen);
-        m_mapScene->fillTile(item->index(), std::get<2>(it));
-        m_tilesSelected->push_back(std::make_tuple(item, pen));
+    for(const auto& item : m_tilesRemoved){
+        TileItem *tile = m_mapScene->itemByIndex(item->index());
+        tile->addLayer(item->name(), item->brush());
     }
 }
 
 void DeleteSelectionCommand::redo()
 {
-    for(const auto& it : m_tilesRemoved){
-        auto item = std::get<0>(it);
-        item->setOpacity(1);
+    for(const auto& item : m_tilesRemoved){
         m_mapScene->deleteTile(item->index());
-        const QPen pen = std::get<1>(it);
-        item->setPen(pen);
     }
-    m_tilesSelected->clear();
 }

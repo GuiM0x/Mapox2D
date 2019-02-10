@@ -83,25 +83,7 @@ QListWidgetItem* TextureList::addTexture(const QString& fileName, bool fromLoadF
     return nullptr;
 }
 
-QListWidgetItem* TextureList::addTexture(const QBrush& brush, const QString& textureName)
-{
-    auto it = m_textures.find(textureName);
-    if(it == std::end(m_textures) && !textureName.isEmpty()){
-        const QPixmap texture = brush.texture();
-        m_textures[textureName] = texture;
-        QPixmap scaledTexture = texture.scaled(iconSize());
-        QIcon icon{scaledTexture};
-        QListWidgetItem *item = new QListWidgetItem{icon, ""};
-        item->setSizeHint(QSize{iconSize() + QSize{4, 4}});
-        item->setToolTip(textureName);
-        addItem(item);
-        m_widgetItems.push_back(item);
-        emit docModified();
-        return item;
-    }
-    return nullptr;
-}
-
+// Used when sprite sheet has been cutted
 void TextureList::addTexture(const QList<QPixmap>& textures, const QString& fileName)
 {
     const QString cuttedFileName = StringTools::cutFileName(fileName);

@@ -23,8 +23,8 @@ private:
 private:
     MapScene               *m_mapScene{nullptr};
     QList<TileItem*>       *m_floatSelectionFromView{nullptr};
-    QList<TileItem*>        m_floatSelectionSaved{};
-    QList<TileItem*>        m_oldItemOnMap{};
+    QList<TileItem*>        m_copiedSelection{};
+    QList<TileItem*>        m_copiedItemOnMap{};
 };
 
 #endif // ANCHORCOMMAND_H

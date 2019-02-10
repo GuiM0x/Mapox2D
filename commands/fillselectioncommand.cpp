@@ -16,28 +16,20 @@ FillSelectionCommand::FillSelectionCommand(MapScene *mapScene,
             m_itemsSelected.push_back(std::make_pair(m_mapScene->itemByIndex(i), QPen{}));
         }
     }
-    // We save old tile's name before redo()
-    for(const auto& item : m_itemsSelected){
-        const QString oldName = std::get<0>(item)->name();
-        m_oldItems.push_back(std::make_pair(std::get<0>(item), oldName));
-    }
     const QString infos = "Selection filled with [" + m_textureName + "]";
     setText(infos);
 }
 
 void FillSelectionCommand::undo()
 {
-    for(const auto& item : m_oldItems){
-        m_mapScene->deleteTile(std::get<0>(item)->index());
-        m_mapScene->fillTile(std::get<0>(item)->index(), std::get<1>(item), false);
+    for(const auto& item : m_itemsSelected){
+        m_mapScene->removeLastLayer(std::get<0>(item)->index());
     }
 }
 
 void FillSelectionCommand::redo()
 {
     for(const auto& item : m_itemsSelected){
-        if(std::get<0>(item)->name() != m_textureName){
-            m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName);
-        }
+        m_mapScene->fillTile(std::get<0>(item)->index(), m_textureName);
     }
 }

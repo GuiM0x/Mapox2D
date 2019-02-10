@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <QPen>
 #include <QBrush>
+#include <QRegularExpression>
 
 class TileItem : public QGraphicsRectItem
 {
@@ -27,25 +28,27 @@ public:
     QString name() const;
     void setIndex(int index);
     void setName(const QString& name);
-
-    bool addLayer(const QString& textureName, const QBrush& texture);
+    bool addLayer(const QString& textureName,
+                  const QBrush& texture,
+                  bool forceCompose = false);
     void removeLastLayer();
-    bool isComposed() const;
     int layerCount() const;
     std::stack<Layer> layers() const;
+    bool canAddLayer(const QString& textureName) const;
+    void clear();
 
     static TileItem* copy(TileItem* item);
 
-//private:
-    void setBrush(const QBrush& brush);
-
 private:
     void composeImage(const QBrush& texture);
+    void setBrush(const QBrush& brush);
+    void updateComposedName();
 
 private:
     QString                 m_name{""};
     int                     m_index{-1};
     std::stack<Layer>       m_layers{};
+    std::stack<QBrush>      m_composed{};
 };
 
 #endif // TILEITEM_H

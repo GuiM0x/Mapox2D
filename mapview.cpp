@@ -106,10 +106,12 @@ void MapView::toolTriggered(bool trigger, ToolType type)
     // IF MOVE TOOL DISABLED AND FLOAT SELECTION NOT EMPTY
     // Command -> Discard Float selection (e.g pasted items)
     if(!m_moveSelectionToolActived && !m_floatSelection.empty()){
-        auto mapScene = static_cast<MapScene*>(scene());
+        /*auto mapScene = static_cast<MapScene*>(scene());
         DiscardFloatSelectionCommand *dfsc = new DiscardFloatSelectionCommand{mapScene,
                                                                               &m_floatSelection};
-        m_undoStack->push(dfsc);
+        m_undoStack->push(dfsc);*/
+
+       // m_undoStack->undo(); <- don't do that !
     }
 
     // IF SELECTION TOOL DISABLED
@@ -142,11 +144,9 @@ void MapView::cutTriggered()
 
 void MapView::pasteTriggered()
 {
-    // m_floatSelection.empty() is necessary to avoid double Ctrl + V
-    // Avoid it is a good thing for commands
     if(!m_copiedItems.empty() && m_floatSelection.empty()){
         auto mapScene = static_cast<MapScene*>(scene());
-        QUndoCommand *pasteCommand = new PasteCommand{mapScene, &m_copiedItems, &m_floatSelection};
+        QUndoCommand *pasteCommand = new PasteCommand{mapScene, m_copiedItems, &m_floatSelection};
         m_undoStack->push(pasteCommand);
         emit activeAnchorAct(true);
     }
@@ -207,8 +207,8 @@ void MapView::selectAll()
         if(itemSelected->pen().style() != Qt::NoPen){
             m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
             itemSelected->setOpacity(0.5);
-            QPen pen{Qt::DotLine};
-            pen.setBrush(QBrush{Qt::red});
+            QPen pen{Qt::DashLine};
+            pen.setBrush(QBrush{Qt::white});
             itemSelected->setPen(pen);
         }
     }
@@ -229,7 +229,9 @@ void MapView::removeTileFromScene(const QString& tileName)
                 // Now we push item in m_originalSelected.
                 m_originalItemsSelected.push_back(std::make_tuple(item, item->pen()));
                 item->setOpacity(0.5);
-                item->setPen(QPen{Qt::DotLine});
+                QPen pen{Qt::DashLine};
+                pen.setBrush(QBrush{Qt::white});
+                item->setPen(pen);
             }
         }
     }
@@ -238,6 +240,7 @@ void MapView::removeTileFromScene(const QString& tileName)
             new DeleteSelectionCommand{mapScene,
                                        &m_originalItemsSelected};
     m_undoStack->push(deleteSelection);
+    restoreOriginalSeletedItem();
 }
 
 void MapView::resizeGridTriggered()
@@ -252,7 +255,7 @@ void MapView::resizeGridTriggered()
     if(rows != 0 || cols != 0){
         mapScene->resizeGrid(rows, cols);
         m_undoStack->clear();
-        reset();
+        reset(mapScene->itemsBoundingRect());
         // emit documentModified or Command resize ?
     }
 }
@@ -285,6 +288,7 @@ void MapView::keyPressEvent(QKeyEvent *event)
             QUndoCommand *deleteSelectionCommand = new DeleteSelectionCommand{mapScene,
                                                                               &m_originalItemsSelected};
             m_undoStack->push(deleteSelectionCommand);
+            restoreOriginalSeletedItem();
         } else {
             int index = mapScene->currentTile();
             if(mapScene->canDeleteTile(index)){
@@ -404,7 +408,9 @@ void MapView::growToSelection(const QList<QGraphicsItem*>& itemsSelected)
             if(itemSelected->pen().style() != Qt::NoPen){
                 m_originalItemsSelected.push_back(std::make_tuple(itemSelected, itemSelected->pen()));
                 itemSelected->setOpacity(0.5);
-                itemSelected->setPen(QPen{Qt::DotLine});
+                QPen pen{Qt::DashLine};
+                pen.setBrush(QBrush{Qt::white});
+                itemSelected->setPen(pen);
             }
         }
     }
