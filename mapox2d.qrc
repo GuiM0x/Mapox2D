@@ -20,5 +20,7 @@
         <file>icons/minimize.png</file>
         <file>icons/icon2D.png</file>
         <file>icons/sizeGrip.png</file>
+        <file>icons/changeBackgroundColor.png</file>
+        <file>icons/changeGridColor.png</file>
     </qresource>
 </RCC>

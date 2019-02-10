@@ -199,6 +199,15 @@ void MapScene::resizeGrid(int rows, int cols)
     if(rows < 0 && abs(rows) < m_rows) reduceRow(abs(rows));
 }
 
+void MapScene::changeGridColor(const QColor& color)
+{
+    for(auto& item : m_tiles){
+        QPen pen = item->pen();
+        pen.setColor(color);
+        item->setPen(pen);
+    }
+}
+
 void MapScene::currentTextureSelectedInList(QListWidgetItem *item)
 {
     m_currentTextureFileName = item->toolTip();

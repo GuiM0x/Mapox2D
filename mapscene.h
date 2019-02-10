@@ -53,6 +53,7 @@ public:
     QGraphicsRectItem* focusRect();
     const std::vector<TileItem*>* tiles() const;
     void resizeGrid(int rows, int cols);
+    void changeGridColor(const QColor& color);
 
 signals:
     // Connected with slot &MapView::mouseMovingAndPressing

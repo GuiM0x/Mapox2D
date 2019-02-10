@@ -106,9 +106,9 @@ void MapView::toolTriggered(bool trigger, ToolType type)
     // IF MOVE TOOL DISABLED AND FLOAT SELECTION NOT EMPTY
     // Command -> Discard Float selection (e.g pasted items)
 
-    // TO DO : Find another condition(s) because discard float selection make dick move
-    //         Maybe an action in tool bar for beginning ?
+    // TO DO : Find another condition(s) or else discard float selection make dick move
     //         The fact is that discard's command intersects the float selection between other commands
+    //         Maybe an action in tool bar for beginning ?
     if(!m_moveSelectionToolActived && !m_floatSelection.empty()){
         /*auto mapScene = static_cast<MapScene*>(scene());
         DiscardFloatSelectionCommand *dfsc = new DiscardFloatSelectionCommand{mapScene,

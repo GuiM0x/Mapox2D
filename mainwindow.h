@@ -33,6 +33,7 @@
 #include <QShowEvent>
 #include <QDesktopWidget>
 #include <QSizeGrip>
+#include <QColorDialog>
 
 class MainWindow : public QMainWindow
 {
@@ -67,6 +68,8 @@ private slots:
     void clearUndoStack();
     // Connected with signal TextureList::removeItemFromTextureList
     void removeItemFromTextureList(const QString& textureName);
+    void changeBackgroundViewColor();
+    void changeGridColor();
 
 private:
     void createActions();

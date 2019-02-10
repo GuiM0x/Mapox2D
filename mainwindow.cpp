@@ -103,7 +103,7 @@ void MainWindow::about()
 {
     QMessageBox message{};
     message.setIcon(QMessageBox::Information);
-    message.setText("Mapox2D was created in 2019");
+    message.setText("Mapox2D - In development since January 10 2019");
     message.exec();
 }
 
@@ -199,6 +199,26 @@ void MainWindow::removeItemFromTextureList(const QString& textureName)
         RemoveItemFromTextureListCommand *cmd =
                 new RemoveItemFromTextureListCommand{m_textureList, textureName};
         m_undoStack->push(cmd);
+    }
+}
+
+void MainWindow::changeBackgroundViewColor()
+{
+    QColorDialog dial{};
+    dial.exec();
+    if(dial.result() == QDialog::Accepted){
+        const QColor selected = dial.selectedColor();
+        m_mapView->setBackgroundBrush(QBrush{selected});
+    }
+}
+
+void MainWindow::changeGridColor()
+{
+    QColorDialog dial{};
+    dial.exec();
+    if(dial.result() == QDialog::Accepted){
+        const QColor selected = dial.selectedColor();
+        m_mapScene->changeGridColor(selected);
     }
 }
 
@@ -318,6 +338,20 @@ void MainWindow::createActions()
     connect(resizeGridAct, &QAction::triggered, m_mapView, &MapView::resizeGridTriggered);
     editMenu->addAction(resizeGridAct);
     editToolBar->addAction(resizeGridAct);
+
+    // CHANGE BACKGROUND COLOR
+    QIcon changeBackgroundColorIcon{":/icons/changeBackgroundColor.png"};
+    QAction *changeBackgroundColorAct = new QAction{changeBackgroundColorIcon, tr("Change background view's color")};
+    connect(changeBackgroundColorAct, &QAction::triggered, this, &MainWindow::changeBackgroundViewColor);
+    editMenu->addAction(changeBackgroundColorAct);
+    editToolBar->addAction(changeBackgroundColorAct);
+
+    // CHANGE GRID COLOR
+    QIcon changeGridColorIcon{":/icons/changeGridColor.png"};
+    QAction *changeGridColorAct = new QAction{changeGridColorIcon, tr("Change grid's color")};
+    connect(changeGridColorAct, &QAction::triggered, this, &MainWindow::changeGridColor);
+    editMenu->addAction(changeGridColorAct);
+    editToolBar->addAction(changeGridColorAct);
 
     /////////////////////// TOOL MENU
     QMenu *toolsMenu = menuBar()->addMenu(tr("&Tools"));
