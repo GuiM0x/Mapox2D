@@ -10,4 +10,4 @@
 ![img not found](https://i.imgur.com/1cn4oeA.png "Mapox2D 0.3")
 
 ##### Update 0.4
-![img not found](https://i.imgur.com/AkhBuK7.png "Mapox2D 0.4")
+![img not found](https://i.imgur.com/LSZkg0F.png "Mapox2D 0.4")
