@@ -11,7 +11,7 @@ QDockWidget::float-button:hover{
 QDockWidget::title{
     text-align    : left;
     color         : rgb(210, 210, 210);
-    background    : rgb(60, 60 ,60);
+    background    : rgb(60, 60, 60);
     border        : 1px solid rgb(100, 100, 100);
     border-bottom : none;
 }

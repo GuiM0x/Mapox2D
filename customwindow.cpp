@@ -103,7 +103,7 @@ void CustomWindow::createTitleBar()
 {
     m_titleBar = new QWidget{this};
     m_titleBar->setStyleSheet("QWidget{"
-                              "    background    : rgb(60, 60, 60);"
+                              "    background    : rgb(30, 30, 30);"
                               "    border        : 1px solid rgb(100, 100, 100);"
                               "    color         : rgb(210, 210, 210);"
                               "}"
