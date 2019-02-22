@@ -141,6 +141,13 @@ void TileItem::copyLayers(std::stack<Layer> layers)
     }
 }
 
+QImage TileItem::image() const
+{
+    if(m_composed.empty())
+        return QImage{};
+    return m_composed.top().textureImage();
+}
+
 ///// STATIC FUNCTION
 TileItem* TileItem::copy(TileItem* itemToCopy)
 {

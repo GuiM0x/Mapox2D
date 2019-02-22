@@ -22,5 +22,6 @@
         <file>icons/sizeGrip.png</file>
         <file>icons/changeBackgroundColor.png</file>
         <file>icons/changeGridColor.png</file>
+        <file>icons/generate.png</file>
     </qresource>
 </RCC>

@@ -11,3 +11,6 @@
 
 ##### Update 0.4
 ![img not found](https://i.imgur.com/LSZkg0F.png "Mapox2D 0.4")
+
+##### Update 0.5
+![img not found](https://i.imgur.com/SAbegXY.png "Mapox2D 0.5")

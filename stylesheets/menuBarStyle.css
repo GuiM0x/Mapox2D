@@ -7,3 +7,12 @@ QMenuBar{
 QMenuBar::item:selected{
     background     : rgb(30, 100, 170);
 }
+
+QMenu{
+	background : rgb(60, 60, 60);
+	color      : rgb(210, 210, 210);
+}
+
+QMenu::item:selected {
+    background : rgb(50, 130, 150);
+}

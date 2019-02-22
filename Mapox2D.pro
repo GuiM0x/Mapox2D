@@ -46,7 +46,8 @@ SOURCES += \
     commands/removeitemfromtexturelistcommand.cpp \
     tools/stylesheetregister.cpp \
     customwindow.cpp \
-    dialogs/resizegriddialog.cpp
+    dialogs/resizegriddialog.cpp \
+    tools/datagenerator.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -72,7 +73,8 @@ HEADERS += \
     tools/stylesheetregister.h \
     tools/singleton.h \
     customwindow.h \
-    dialogs/resizegriddialog.h
+    dialogs/resizegriddialog.h \
+    tools/datagenerator.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

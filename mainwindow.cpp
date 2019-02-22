@@ -132,6 +132,17 @@ void MainWindow::openSpriteSheet()
     }
 }
 
+void MainWindow::generateDatas()
+{
+    const QString userGeneratePath =
+            QFileDialog::getExistingDirectory(this, tr("Select folder to generate datas"));
+    DataGenerator dg{m_mapScene};
+    dg.generateDatas(userGeneratePath);
+    QMessageBox::information(this,
+                             tr("Generated Files"),
+                             tr("Files generated successefuly !"));
+}
+
 void MainWindow::quit()
 {
     if(maybeSave())
@@ -234,8 +245,9 @@ void MainWindow::createActions()
 
     // NEW FILE
     QIcon newIcon{":/icons/newFile.png"};
-    QAction *newAct = new QAction{newIcon, tr("&New map"), this};
+    QAction *newAct = new QAction{newIcon, tr("&New project"), this};
     newAct->setShortcut(QKeySequence::New);
+    newAct->setToolTip(tr("New project"));
     connect(newAct, &QAction::triggered, this, &MainWindow::newMap);
     fileMenu->addAction(newAct);
     fileToolBar->addAction(newAct);
@@ -244,6 +256,7 @@ void MainWindow::createActions()
     QIcon openIcon{":/icons/openFile.png"};
     QAction *openAct = new QAction{openIcon, tr("&Open..."), this};
     openAct->setShortcut(QKeySequence::Open);
+    openAct->setToolTip(tr("Open project"));
     connect(openAct, &QAction::triggered, this, &MainWindow::open);
     fileMenu->addAction(openAct);
     fileToolBar->addAction(openAct);
@@ -252,6 +265,7 @@ void MainWindow::createActions()
     QIcon saveIcon{":/icons/saveFile.png"};
     QAction *saveAct = new QAction{saveIcon, tr("&Save"), this};
     saveAct->setShortcut(QKeySequence::Save);
+    saveAct->setToolTip(tr("Save project"));
     connect(saveAct, &QAction::triggered, this, &MainWindow::save);
     fileMenu->addAction(saveAct);
     fileToolBar->addAction(saveAct);
@@ -259,6 +273,7 @@ void MainWindow::createActions()
     // SAVE AS
     QAction *saveAsAct = new QAction{tr("&Save as..."), this};
     saveAsAct->setShortcut(QKeySequence::SaveAs);
+    saveAsAct->setToolTip(tr("Save project as..."));
     connect(saveAsAct, &QAction::triggered, this, &MainWindow::saveAs);
     fileMenu->addAction(saveAsAct);
 
@@ -268,6 +283,7 @@ void MainWindow::createActions()
     // IMPORT TEXTURE
     QIcon importTextureIcon{":/icons/importTexture.png"};
     QAction *importTextureAct = new QAction{importTextureIcon, tr("&Import texture..."), this};
+    importTextureAct->setToolTip(tr("Import texture from computer"));
     connect(importTextureAct, &QAction::triggered, this, &MainWindow::openTexture);
     fileMenu->addAction(importTextureAct);
     fileToolBar->addAction(importTextureAct);
@@ -275,9 +291,18 @@ void MainWindow::createActions()
     // IMPORT SPRITESHEET
     QIcon importSpriteSheetIcon{":/icons/importSpriteSheet.png"};
     QAction *importSpriteSheetAct = new QAction{importSpriteSheetIcon, tr("Import sprite sheet..."), this};
+    importSpriteSheetAct->setToolTip(tr("Import sprite (After the import, cut the sheet is asked)"));
     connect(importSpriteSheetAct, &QAction::triggered, this, &MainWindow::openSpriteSheet);
     fileMenu->addAction(importSpriteSheetAct);
     fileToolBar->addAction(importSpriteSheetAct);
+
+    // GENERATE FILES
+    QIcon generateIcon{":/icons/generate.png"};
+    QAction *generateAct = new QAction{generateIcon, tr("Generate Datas...")};
+    generateAct->setToolTip(tr("Generate folder with datas that represent textures and array"));
+    connect(generateAct, &QAction::triggered, this, &MainWindow::generateDatas);
+    fileMenu->addAction(generateAct);
+    fileToolBar->addAction(generateAct);
 
     fileMenu->addSeparator();
 
@@ -296,6 +321,7 @@ void MainWindow::createActions()
     QIcon undoIcon{":/icons/undo.png"};
     QAction *undoAct = m_undoStack->createUndoAction(this, tr("&Undo"));
     undoAct->setIcon(undoIcon);
+    undoAct->setToolTip(tr("Undo"));
     undoAct->setShortcut(QKeySequence::Undo);
     connect(undoAct, &QAction::triggered, m_mapView, &MapView::undoActTriggered);
     editMenu->addAction(undoAct);
@@ -305,6 +331,7 @@ void MainWindow::createActions()
     QIcon redoIcon{":/icons/redo.png"};
     QAction *redoAct = m_undoStack->createRedoAction(this, tr("&Redo"));
     redoAct->setIcon(redoIcon);
+    redoAct->setToolTip(tr("Redo"));
     redoAct->setShortcut(QKeySequence::Redo);
     editMenu->addAction(redoAct);
     editToolBar->addAction(redoAct);
@@ -335,6 +362,7 @@ void MainWindow::createActions()
     // RESIZE GRID
     QIcon resizeGridIcon{":/icons/resizeGrid.png"};
     QAction *resizeGridAct = new QAction{resizeGridIcon, tr("Resize grid")};
+    resizeGridAct->setToolTip(tr("Resize the grid with given rows and cols"));
     connect(resizeGridAct, &QAction::triggered, m_mapView, &MapView::resizeGridTriggered);
     editMenu->addAction(resizeGridAct);
     editToolBar->addAction(resizeGridAct);
@@ -342,6 +370,7 @@ void MainWindow::createActions()
     // CHANGE BACKGROUND COLOR
     QIcon changeBackgroundColorIcon{":/icons/changeBackgroundColor.png"};
     QAction *changeBackgroundColorAct = new QAction{changeBackgroundColorIcon, tr("Change background view's color")};
+    changeBackgroundColorAct->setToolTip(tr("Change background's color of view"));
     connect(changeBackgroundColorAct, &QAction::triggered, this, &MainWindow::changeBackgroundViewColor);
     editMenu->addAction(changeBackgroundColorAct);
     editToolBar->addAction(changeBackgroundColorAct);
@@ -349,6 +378,7 @@ void MainWindow::createActions()
     // CHANGE GRID COLOR
     QIcon changeGridColorIcon{":/icons/changeGridColor.png"};
     QAction *changeGridColorAct = new QAction{changeGridColorIcon, tr("Change grid's color")};
+    changeGridColorAct->setToolTip(tr("Change grid color"));
     connect(changeGridColorAct, &QAction::triggered, this, &MainWindow::changeGridColor);
     editMenu->addAction(changeGridColorAct);
     editToolBar->addAction(changeGridColorAct);

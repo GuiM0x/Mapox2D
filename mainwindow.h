@@ -11,6 +11,7 @@
 #include "tools/dataloader.h"
 #include "tools/utilitytools.h"
 #include "tools/stylesheetregister.h"
+#include "tools/datagenerator.h"
 
 #include <map>
 
@@ -58,6 +59,7 @@ private slots:
     void about();
     void openTexture();
     void openSpriteSheet();
+    void generateDatas();
     void quit();
     void selectToolTriggered(bool trigger);
     void moveSelectionToolTriggered(bool trigger);

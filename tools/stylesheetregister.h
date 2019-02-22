@@ -17,6 +17,7 @@ enum class StyleSheet{
     UndoView,
     DockWidget,
     StatusBar,
+    Menu
 };
 
 class StyleSheetRegister : public Singleton<StyleSheetRegister>

@@ -37,6 +37,7 @@ public:
     bool canAddLayer(const QString& textureName) const;
     void clear();
     void copyLayers(std::stack<Layer> layers);
+    QImage image() const;
 
     static TileItem* copy(TileItem* item);
 
